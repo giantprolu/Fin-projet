@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from '@/components/ui/card';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,6 +24,8 @@ export default function AdminEquipesPage() {
   const [loading, setLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     tag: '',
@@ -48,17 +51,27 @@ export default function AdminEquipesPage() {
     }
   };
 
-  const getTeamEmoji = (tag: string): string => {
-    const emojis: { [key: string]: string } = {
-      'VIT': '�',
-      'KC': '👑',
-      'LDLC': '⭐',
-      'BDS': '🛡️',
-      'SLY': '🐍',
-      'GM': '🎯',
-      'DEFAULT': '🏆'
+  const getTeamLogo = (tag: string, logoUrl?: string): string => {
+    // Si un logo personnalisé est fourni, l'utiliser
+    if (logoUrl && logoUrl.startsWith('/assets/')) {
+      return logoUrl;
+    }
+    
+    // Sinon, utiliser les logos par défaut
+    const logos: { [key: string]: string } = {
+      'VIT': '/assets/Team_Vitality_Logo_2018.png',
+      'KC': '/assets/Karmine_Corp.svg',
+      'LDLC': '/assets/TeamLDLClogo.png',
+      'BDS': '/assets/Team_BDS.png',
+      'SLY': '/assets/Logo_Solary.png',
+      'GM': '/assets/gentlemates.webp',
+      'GO': '/assets/GamersOrigin.png',
+      'MCES': '/assets/MCES.png',
+      'MND': '/assets/Mandatory.png',
+      'ATL': '/assets/atletico.webp',
+      'DEFAULT': '/assets/Team_Vitality_Logo_2018.png'
     };
-    return emojis[tag] || emojis['DEFAULT'];
+    return logos[tag] || logos['DEFAULT'];
   };
 
   const formatCurrency = (amount: number): string => {
@@ -66,6 +79,68 @@ export default function AdminEquipesPage() {
       style: 'currency',
       currency: 'EUR'
     }).format(amount);
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Vérifier que le nom de l'équipe est renseigné
+    if (!formData.name.trim()) {
+      alert('Veuillez renseigner le nom de l\'équipe avant d\'uploader un logo');
+      return;
+    }
+
+    // Vérifier la taille du fichier (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Le fichier est trop volumineux (max 5MB)');
+      return;
+    }
+
+    // Créer un aperçu de l'image
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setImagePreview(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    // Upload du fichier
+    setUploading(true);
+    try {
+      const uploadFormData = new FormData();
+      uploadFormData.append('image', file);
+      uploadFormData.append('teamName', formData.name);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: uploadFormData,
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setFormData(prev => ({ ...prev, logo_url: result.imagePath }));
+      } else {
+        alert('Erreur lors de l\'upload: ' + result.error);
+      }
+    } catch (error) {
+      console.error('Erreur upload:', error);
+      alert('Erreur lors de l\'upload de l\'image');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      tag: '',
+      country: 'FR',
+      logo_url: '',
+      founded_year: new Date().getFullYear(),
+      total_earnings: 0
+    });
+    setImagePreview(null);
   };
 
   if (loading) {
@@ -84,20 +159,28 @@ export default function AdminEquipesPage() {
     );
   }
 
-  const handleCreate = () => {
-    const newTeam: Team = {
-      id: `team_${Date.now()}`,
-      name: formData.name,
-      tag: formData.tag,
-      country: formData.country,
-      logo_url: formData.logo_url,
-      founded_year: formData.founded_year,
-      total_earnings: formData.total_earnings,
-      created_at: new Date().toISOString(),
-    };
-    setTeams([...teams, newTeam]);
-    setIsCreateOpen(false);
-    setFormData({ name: '', tag: '', country: 'FR', logo_url: '', founded_year: new Date().getFullYear(), total_earnings: 0 });
+  const handleCreate = async () => {
+    try {
+      const response = await fetch('/api/teams', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        await fetchTeams(); // Recharger la liste
+        setIsCreateOpen(false);
+        resetForm();
+      } else {
+        const error = await response.json();
+        alert('Erreur: ' + error.error);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la création:', error);
+      alert('Erreur lors de la création de l\'équipe');
+    }
   };
 
   const handleEdit = (team: Team) => {
@@ -110,32 +193,53 @@ export default function AdminEquipesPage() {
       founded_year: team.founded_year || new Date().getFullYear(),
       total_earnings: team.total_earnings,
     });
+    setImagePreview(team.logo_url || null);
   };
 
-  const handleUpdate = () => {
+  const handleUpdate = async () => {
     if (editingTeam) {
-      setTeams(
-        teams.map((team) =>
-          team.id === editingTeam.id 
-            ? { 
-                ...editingTeam, 
-                name: formData.name,
-                tag: formData.tag,
-                country: formData.country,
-                logo_url: formData.logo_url,
-                founded_year: formData.founded_year,
-                total_earnings: formData.total_earnings,
-              } 
-            : team
-        )
-      );
-      setEditingTeam(null);
-      setFormData({ name: '', tag: '', country: 'FR', logo_url: '', founded_year: new Date().getFullYear(), total_earnings: 0 });
+      try {
+        const response = await fetch(`/api/teams/${editingTeam.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+        });
+
+        if (response.ok) {
+          await fetchTeams(); // Recharger la liste
+          setEditingTeam(null);
+          resetForm();
+        } else {
+          const error = await response.json();
+          alert('Erreur: ' + error.error);
+        }
+      } catch (error) {
+        console.error('Erreur lors de la mise à jour:', error);
+        alert('Erreur lors de la mise à jour de l\'équipe');
+      }
     }
   };
 
-  const handleDelete = (id: string) => {
-    setTeams(teams.filter((team) => team.id !== id));
+  const handleDelete = async (id: string) => {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cette équipe ?')) {
+      try {
+        const response = await fetch(`/api/teams/${id}`, {
+          method: 'DELETE',
+        });
+
+        if (response.ok) {
+          await fetchTeams(); // Recharger la liste
+        } else {
+          const error = await response.json();
+          alert('Erreur: ' + error.error);
+        }
+      } catch (error) {
+        console.error('Erreur lors de la suppression:', error);
+        alert('Erreur lors de la suppression de l\'équipe');
+      }
+    }
   };
 
   return (
@@ -204,13 +308,35 @@ export default function AdminEquipesPage() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="logo_url">URL du logo</Label>
-                  <Input
-                    id="logo_url"
-                    value={formData.logo_url}
-                    onChange={(e) => setFormData({ ...formData, logo_url: e.target.value })}
-                    placeholder="Ex: https://example.com/logo.png"
-                  />
+                  <Label htmlFor="logo">Logo de l&apos;équipe</Label>
+                  <div className="space-y-3">
+                    <Input
+                      id="logo"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      disabled={uploading}
+                      className="cursor-pointer"
+                    />
+                    {uploading && (
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <div className="w-4 h-4 border-2 border-copper border-t-transparent rounded-full animate-spin" />
+                        Upload en cours...
+                      </div>
+                    )}
+                    {(imagePreview || formData.logo_url) && (
+                      <div className="flex items-center gap-3 p-3 border rounded-lg bg-gray-50">
+                        <Image
+                          src={imagePreview || formData.logo_url}
+                          alt="Aperçu du logo"
+                          width={48}
+                          height={48}
+                          className="object-contain rounded border"
+                        />
+                        <span className="text-sm text-gray-600">Logo sélectionné</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -260,7 +386,15 @@ export default function AdminEquipesPage() {
                 <Card className="p-6 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-2 border-transparent hover:border-teal/30">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <span className="text-5xl">{getTeamEmoji(team.tag)}</span>
+                      <div className="w-14 h-14 relative">
+                        <Image 
+                          src={getTeamLogo(team.tag, team.logo_url)} 
+                          alt={team.name}
+                          width={56}
+                          height={56}
+                          className="object-contain rounded-lg"
+                        />
+                      </div>
                       <div>
                         <h3 className="text-xl font-bold text-gray-900">{team.name}</h3>
                         <Badge className="bg-teal/10 text-teal mt-1">{team.tag}</Badge>
@@ -318,14 +452,35 @@ export default function AdminEquipesPage() {
                               />
                             </div>
                             <div>
-                              <Label htmlFor="edit-logo_url">URL du logo</Label>
-                              <Input
-                                id="edit-logo_url"
-                                value={formData.logo_url}
-                                onChange={(e) =>
-                                  setFormData({ ...formData, logo_url: e.target.value })
-                                }
-                              />
+                              <Label htmlFor="edit-logo">Logo de l&apos;équipe</Label>
+                              <div className="space-y-3">
+                                <Input
+                                  id="edit-logo"
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={handleImageUpload}
+                                  disabled={uploading}
+                                  className="cursor-pointer"
+                                />
+                                {uploading && (
+                                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                                    <div className="w-4 h-4 border-2 border-copper border-t-transparent rounded-full animate-spin" />
+                                    Upload en cours...
+                                  </div>
+                                )}
+                                {(imagePreview || formData.logo_url) && (
+                                  <div className="flex items-center gap-3 p-3 border rounded-lg bg-gray-50">
+                                    <Image
+                                      src={imagePreview || formData.logo_url}
+                                      alt="Aperçu du logo"
+                                      width={48}
+                                      height={48}
+                                      className="object-contain rounded border"
+                                    />
+                                    <span className="text-sm text-gray-600">Logo actuel</span>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                               <div>

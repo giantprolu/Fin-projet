@@ -3,6 +3,44 @@ import { getDatabase, type Match, type MatchWithTeams, type Team, type Game, typ
 export class DatabaseService {
   private db = getDatabase();
 
+  constructor() {
+    this.initializeTables();
+  }
+
+  // Initialiser les tables si elles n'existent pas
+  private initializeTables() {
+    try {
+      // Créer la table teams si elle n'existe pas
+      this.db.exec(`
+        CREATE TABLE IF NOT EXISTS teams (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          tag TEXT UNIQUE NOT NULL,
+          country TEXT NOT NULL DEFAULT 'FR',
+          logo_url TEXT,
+          founded_year INTEGER,
+          total_earnings INTEGER DEFAULT 0,
+          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      // Créer un index sur le tag pour améliorer les performances
+      this.db.exec(`
+        CREATE INDEX IF NOT EXISTS idx_teams_tag ON teams(tag)
+      `);
+
+      // Vérifier que la table existe
+      const tableExists = this.db.prepare(`
+        SELECT COUNT(*) as count FROM sqlite_master 
+        WHERE type='table' AND name='teams'
+      `).get() as { count: number };
+
+      console.log(`Table teams ${tableExists.count > 0 ? 'existe' : 'n\'existe pas'}`);
+    } catch (error) {
+      console.error('Erreur lors de l\'initialisation des tables:', error);
+    }
+  }
+
   // Obtenir tous les matchs avec les détails des équipes
   getMatchesWithDetails(): MatchWithTeams[] {
     const stmt = this.db.prepare(`
@@ -161,14 +199,41 @@ export class DatabaseService {
 
   // Obtenir toutes les équipes
   getTeams(): Team[] {
-    const stmt = this.db.prepare('SELECT * FROM teams ORDER BY name');
-    return stmt.all() as Team[];
+    try {
+      const stmt = this.db.prepare('SELECT * FROM teams ORDER BY name');
+      const rawTeams = stmt.all() as any[];
+      
+      // Convertir les IDs en strings pour correspondre à l'interface
+      return rawTeams.map(team => ({
+        ...team,
+        id: team.id.toString()
+      }));
+    } catch (error) {
+      console.error('Erreur lors de la récupération des équipes:', error);
+      // Si la table n'existe pas encore, retourner un tableau vide
+      return [];
+    }
   }
 
   // Obtenir une équipe par ID
   getTeamById(teamId: string): Team | null {
-    const stmt = this.db.prepare('SELECT * FROM teams WHERE id = ?');
-    return stmt.get(teamId) as Team | null;
+    try {
+      const stmt = this.db.prepare('SELECT * FROM teams WHERE id = ?');
+      const rawTeam = stmt.get(teamId) as any;
+      
+      if (!rawTeam) {
+        return null;
+      }
+      
+      // Convertir l'ID en string pour correspondre à l'interface
+      return {
+        ...rawTeam,
+        id: rawTeam.id.toString()
+      };
+    } catch (error) {
+      console.error('Erreur lors de la récupération de l\'équipe:', error);
+      return null;
+    }
   }
 
   // Obtenir tous les jeux
@@ -242,6 +307,152 @@ export class DatabaseService {
       totalBets: totalBets.count,
       totalUsers: totalUsers.count
     };
+  }
+
+  // CRUD pour les équipes
+  createTeam(team: Omit<Team, 'id' | 'created_at'>): Team {
+    try {
+      const stmt = this.db.prepare(`
+        INSERT INTO teams (name, tag, country, logo_url, founded_year, total_earnings, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `);
+      
+      const result = stmt.run(
+        team.name,
+        team.tag,
+        team.country || 'FR',
+        team.logo_url || null,
+        team.founded_year || new Date().getFullYear(),
+        team.total_earnings || 0,
+        new Date().toISOString()
+      );
+
+      console.log('Résultat de l\'insertion:', result);
+      console.log('lastInsertRowid type:', typeof result.lastInsertRowid);
+      console.log('lastInsertRowid value:', result.lastInsertRowid);
+
+      // Convertir le bigint en number pour la requête
+      const newId = Number(result.lastInsertRowid);
+      console.log('ID converti:', newId);
+      
+      // Retourner la nouvelle équipe avec l'ID correct
+      console.log('Tentative de récupération avec ID:', newId);
+      
+      // Vérifier d'abord si l'équipe existe vraiment
+      const countStmt = this.db.prepare('SELECT COUNT(*) as count FROM teams WHERE id = ?');
+      const countResult = countStmt.get(newId) as { count: number };
+      console.log('Nombre d\'équipes avec cet ID:', countResult.count);
+      
+      // Vérifier toutes les équipes pour voir les IDs disponibles
+      const allTeams = this.db.prepare('SELECT id, name, tag FROM teams ORDER BY id DESC LIMIT 5').all();
+      console.log('Dernières équipes créées:', allTeams);
+      
+      let rawTeam = this.db.prepare('SELECT * FROM teams WHERE id = ?').get(newId) as any;
+      
+      console.log('Équipe récupérée:', rawTeam);
+      
+      // Alternative : récupérer par tag si l'ID pose problème
+      if (!rawTeam) {
+        console.log('Tentative de récupération par tag:', team.tag);
+        rawTeam = this.db.prepare('SELECT * FROM teams WHERE tag = ? ORDER BY id DESC LIMIT 1').get(team.tag) as any;
+        console.log('Équipe récupérée par tag:', rawTeam);
+      }
+      
+      if (!rawTeam) {
+        console.error('Aucune équipe trouvée avec l\'ID:', newId);
+        throw new Error('Impossible de récupérer l\'équipe créée');
+      }
+      
+      // Convertir l'ID en string pour correspondre à l'interface
+      const newTeam: Team = {
+        ...rawTeam,
+        id: rawTeam.id.toString()
+      };
+      
+      console.log('Équipe créée avec succès:', newTeam);
+      return newTeam;
+    } catch (error) {
+      console.error('Erreur lors de la création de l\'équipe:', error);
+      throw error; // Relancer l'erreur pour que l'API puisse la gérer
+    }
+  }
+
+  updateTeam(id: string, team: Partial<Omit<Team, 'id' | 'created_at'>>): Team | null {
+    try {
+      const fields: string[] = [];
+      const values: any[] = [];
+
+      if (team.name !== undefined) {
+        fields.push('name = ?');
+        values.push(team.name);
+      }
+      if (team.tag !== undefined) {
+        fields.push('tag = ?');
+        values.push(team.tag);
+      }
+      if (team.country !== undefined) {
+        fields.push('country = ?');
+        values.push(team.country);
+      }
+      if (team.logo_url !== undefined) {
+        fields.push('logo_url = ?');
+        values.push(team.logo_url);
+      }
+      if (team.founded_year !== undefined) {
+        fields.push('founded_year = ?');
+        values.push(team.founded_year);
+      }
+      if (team.total_earnings !== undefined) {
+        fields.push('total_earnings = ?');
+        values.push(team.total_earnings);
+      }
+
+      if (fields.length === 0) {
+        return this.getTeamById(id);
+      }
+
+      values.push(id);
+      const stmt = this.db.prepare(`UPDATE teams SET ${fields.join(', ')} WHERE id = ?`);
+      stmt.run(...values);
+
+      return this.getTeamById(id);
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour de l\'équipe:', error);
+      throw error;
+    }
+  }
+
+  deleteTeam(id: string): boolean {
+    try {
+      const stmt = this.db.prepare('DELETE FROM teams WHERE id = ?');
+      const result = stmt.run(id);
+      return result.changes > 0;
+    } catch (error) {
+      console.error('Erreur lors de la suppression de l\'équipe:', error);
+      throw error;
+    }
+  }
+
+  // Vérifier si un tag d'équipe existe déjà
+  teamTagExists(tag: string, excludeId?: string): boolean {
+    try {
+      let stmt;
+      let result;
+      
+      if (excludeId) {
+        stmt = this.db.prepare('SELECT COUNT(*) as count FROM teams WHERE tag = ? AND id != ?');
+        result = stmt.get(tag, excludeId) as { count: number };
+      } else {
+        stmt = this.db.prepare('SELECT COUNT(*) as count FROM teams WHERE tag = ?');
+        result = stmt.get(tag) as { count: number };
+      }
+      
+      return result.count > 0;
+    } catch (error) {
+      console.error('Erreur lors de la vérification du tag:', error);
+      // Si la table n'existe pas encore, le tag n'existe pas non plus
+      return false;
+    }
   }
 }
 
