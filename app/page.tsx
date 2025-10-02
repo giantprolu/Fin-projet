@@ -161,7 +161,7 @@ export default function Home() {
             className="text-center mb-16"
           >
             <h2 className="text-5xl font-bold mb-4 text-gray-900">
-              Pourquoi <span className="text-copper">GameBet</span> ?
+              Pourquoi <span className="text-copper">GrandPari</span> ?
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               Une expérience de paris esports révolutionnaire
@@ -272,7 +272,7 @@ export default function Home() {
               Rejoignez la <span className="text-copper-300">Communauté</span>
             </h2>
             <p className="text-xl text-teal-100 max-w-3xl mx-auto">
-              Des milliers de joueurs font confiance à GameBet pour vivre leur passion
+              Des milliers de joueurs font confiance à GrandPari pour vivre leur passion
             </p>
           </motion.div>
 
@@ -359,7 +359,7 @@ export default function Home() {
             <div>
               <div className="flex items-center space-x-2 mb-4">
                 <Gamepad2 className="w-8 h-8 text-copper" />
-                <span className="text-2xl font-bold">GameBet</span>
+                <span className="text-2xl font-bold">GrandPari</span>
               </div>
               <p className="text-gray-400">
                 La plateforme de paris esports nouvelle génération
@@ -395,7 +395,7 @@ export default function Home() {
           </div>
 
           <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
-            <p>© 2025 GameBet. Tous droits réservés.</p>
+            <p>© 2025 GrandPari. Tous droits réservés.</p>
           </div>
         </div>
       </footer>

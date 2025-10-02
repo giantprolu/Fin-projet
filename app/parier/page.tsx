@@ -14,7 +14,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Trophy, TrendingUp, CircleCheck as CheckCircle2, Sparkles } from 'lucide-react';
+import { Trophy, TrendingUp, CircleCheck as CheckCircle2, Sparkles, Wallet } from 'lucide-react';
+import { useUser } from '@clerk/nextjs';
 
 const availableMatches = [
   {
@@ -41,10 +42,12 @@ const availableMatches = [
 ];
 
 export default function ParierPage() {
+  const { isSignedIn, user } = useUser();
   const [selectedMatch, setSelectedMatch] = useState<number | null>(null);
   const [selectedTeam, setSelectedTeam] = useState<'team1' | 'team2' | null>(null);
   const [betAmount, setBetAmount] = useState('');
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [userBalance] = useState(1000); // Solde simulé, à remplacer par des vraies données
 
   const handlePlaceBet = () => {
     if (selectedMatch !== null && selectedTeam && betAmount) {
@@ -72,14 +75,38 @@ export default function ParierPage() {
           transition={{ duration: 0.6 }}
           className="mb-12"
         >
-          <h1 className="text-5xl md:text-6xl font-bold mb-4">
-            <span className="bg-gradient-to-r from-teal to-copper bg-clip-text text-transparent">
-              Placer un Pari
-            </span>
-          </h1>
-          <p className="text-xl text-gray-600">
-            Sélectionnez votre match et montant pour gagner gros
-          </p>
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <h1 className="text-5xl md:text-6xl font-bold mb-4">
+                <span className="bg-gradient-to-r from-teal to-copper bg-clip-text text-transparent">
+                  Placer un Pari
+                </span>
+              </h1>
+              <p className="text-xl text-gray-600">
+                Sélectionnez votre match et montant pour gagner gros
+              </p>
+            </div>
+            
+            {isSignedIn && (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <Card className="p-4 bg-gradient-to-r from-copper/10 to-teal/10 border-copper/20">
+                  <div className="flex items-center gap-3">
+                    <Wallet className="w-5 h-5 text-copper" />
+                    <div>
+                      <p className="text-sm text-gray-600">Bienvenue {user?.firstName}</p>
+                      <p className="font-bold text-lg text-gray-900">
+                        {userBalance.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+              </motion.div>
+            )}
+          </div>
         </motion.div>
 
         <div className="grid lg:grid-cols-3 gap-8">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,59 +15,100 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Plus, CreditCard as Edit, Trash2, Users, Trophy, Shield } from 'lucide-react';
-
-interface Team {
-  id: number;
-  name: string;
-  logo: string;
-  game: string;
-  wins: number;
-  losses: number;
-  rating: number;
-}
-
-const initialTeams: Team[] = [
-  { id: 1, name: 'Fnatic', logo: '🦊', game: 'Valorant', wins: 45, losses: 12, rating: 1850 },
-  { id: 2, name: 'G2 Esports', logo: '⚔️', game: 'League of Legends', wins: 38, losses: 18, rating: 1720 },
-  { id: 3, name: 'Navi', logo: '⭐', game: 'CS:GO', wins: 52, losses: 15, rating: 1920 },
-  { id: 4, name: 'Team Spirit', logo: '👻', game: 'Dota 2', wins: 41, losses: 20, rating: 1680 },
-  { id: 5, name: 'Sentinels', logo: '🛡️', game: 'Valorant', wins: 36, losses: 22, rating: 1590 },
-  { id: 6, name: 'T1', logo: '🏆', game: 'League of Legends', wins: 48, losses: 10, rating: 1980 },
-];
+import { Plus, CreditCard as Edit, Trash2, Users, Trophy, Shield, Flag, Calendar, DollarSign } from 'lucide-react';
+import { type Team } from '@/lib/database';
 
 export default function AdminEquipesPage() {
-  const [teams, setTeams] = useState<Team[]>(initialTeams);
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
   const [formData, setFormData] = useState({
     name: '',
-    logo: '',
-    game: '',
-    wins: 0,
-    losses: 0,
-    rating: 1500,
+    tag: '',
+    country: 'FR',
+    logo_url: '',
+    founded_year: new Date().getFullYear(),
+    total_earnings: 0
   });
+
+  useEffect(() => {
+    fetchTeams();
+  }, []);
+
+  const fetchTeams = async () => {
+    try {
+      const response = await fetch('/api/teams');
+      const data: Team[] = await response.json();
+      setTeams(data);
+    } catch (error) {
+      console.error('Erreur lors du chargement des équipes:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getTeamEmoji = (tag: string): string => {
+    const emojis: { [key: string]: string } = {
+      'VIT': '�',
+      'KC': '👑',
+      'LDLC': '⭐',
+      'BDS': '🛡️',
+      'SLY': '🐍',
+      'GM': '🎯',
+      'DEFAULT': '🏆'
+    };
+    return emojis[tag] || emojis['DEFAULT'];
+  };
+
+  const formatCurrency = (amount: number): string => {
+    return new Intl.NumberFormat('fr-FR', {
+      style: 'currency',
+      currency: 'EUR'
+    }).format(amount);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-copper-50 py-12 px-4">
+        <div className="container mx-auto max-w-7xl">
+          <div className="flex justify-center items-center h-64">
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              className="w-12 h-12 border-4 border-copper border-t-transparent rounded-full"
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleCreate = () => {
     const newTeam: Team = {
-      id: Math.max(...teams.map((t) => t.id)) + 1,
-      ...formData,
+      id: `team_${Date.now()}`,
+      name: formData.name,
+      tag: formData.tag,
+      country: formData.country,
+      logo_url: formData.logo_url,
+      founded_year: formData.founded_year,
+      total_earnings: formData.total_earnings,
+      created_at: new Date().toISOString(),
     };
     setTeams([...teams, newTeam]);
     setIsCreateOpen(false);
-    setFormData({ name: '', logo: '', game: '', wins: 0, losses: 0, rating: 1500 });
+    setFormData({ name: '', tag: '', country: 'FR', logo_url: '', founded_year: new Date().getFullYear(), total_earnings: 0 });
   };
 
   const handleEdit = (team: Team) => {
     setEditingTeam(team);
     setFormData({
       name: team.name,
-      logo: team.logo,
-      game: team.game,
-      wins: team.wins,
-      losses: team.losses,
-      rating: team.rating,
+      tag: team.tag,
+      country: team.country,
+      logo_url: team.logo_url || '',
+      founded_year: team.founded_year || new Date().getFullYear(),
+      total_earnings: team.total_earnings,
     });
   };
 
@@ -75,15 +116,25 @@ export default function AdminEquipesPage() {
     if (editingTeam) {
       setTeams(
         teams.map((team) =>
-          team.id === editingTeam.id ? { ...editingTeam, ...formData } : team
+          team.id === editingTeam.id 
+            ? { 
+                ...editingTeam, 
+                name: formData.name,
+                tag: formData.tag,
+                country: formData.country,
+                logo_url: formData.logo_url,
+                founded_year: formData.founded_year,
+                total_earnings: formData.total_earnings,
+              } 
+            : team
         )
       );
       setEditingTeam(null);
-      setFormData({ name: '', logo: '', game: '', wins: 0, losses: 0, rating: 1500 });
+      setFormData({ name: '', tag: '', country: 'FR', logo_url: '', founded_year: new Date().getFullYear(), total_earnings: 0 });
     }
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: string) => {
     setTeams(teams.filter((team) => team.id !== id));
   };
 
@@ -131,61 +182,59 @@ export default function AdminEquipesPage() {
                     id="name"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="Ex: Fnatic"
+                    placeholder="Ex: Team Vitality"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="logo">Logo (emoji)</Label>
+                  <Label htmlFor="tag">Tag de l&apos;équipe</Label>
                   <Input
-                    id="logo"
-                    value={formData.logo}
-                    onChange={(e) => setFormData({ ...formData, logo: e.target.value })}
-                    placeholder="Ex: 🦊"
+                    id="tag"
+                    value={formData.tag}
+                    onChange={(e) => setFormData({ ...formData, tag: e.target.value })}
+                    placeholder="Ex: VIT"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="game">Jeu</Label>
+                  <Label htmlFor="country">Pays</Label>
                   <Input
-                    id="game"
-                    value={formData.game}
-                    onChange={(e) => setFormData({ ...formData, game: e.target.value })}
-                    placeholder="Ex: Valorant"
+                    id="country"
+                    value={formData.country}
+                    onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                    placeholder="Ex: FR"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="logo_url">URL du logo</Label>
+                  <Input
+                    id="logo_url"
+                    value={formData.logo_url}
+                    onChange={(e) => setFormData({ ...formData, logo_url: e.target.value })}
+                    placeholder="Ex: https://example.com/logo.png"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="wins">Victoires</Label>
+                    <Label htmlFor="founded_year">Année de fondation</Label>
                     <Input
-                      id="wins"
+                      id="founded_year"
                       type="number"
-                      value={formData.wins}
+                      value={formData.founded_year}
                       onChange={(e) =>
-                        setFormData({ ...formData, wins: parseInt(e.target.value) || 0 })
+                        setFormData({ ...formData, founded_year: parseInt(e.target.value) || new Date().getFullYear() })
                       }
                     />
                   </div>
                   <div>
-                    <Label htmlFor="losses">Défaites</Label>
+                    <Label htmlFor="total_earnings">Gains totaux (€)</Label>
                     <Input
-                      id="losses"
+                      id="total_earnings"
                       type="number"
-                      value={formData.losses}
+                      value={formData.total_earnings}
                       onChange={(e) =>
-                        setFormData({ ...formData, losses: parseInt(e.target.value) || 0 })
+                        setFormData({ ...formData, total_earnings: parseInt(e.target.value) || 0 })
                       }
                     />
                   </div>
-                </div>
-                <div>
-                  <Label htmlFor="rating">Rating</Label>
-                  <Input
-                    id="rating"
-                    type="number"
-                    value={formData.rating}
-                    onChange={(e) =>
-                      setFormData({ ...formData, rating: parseInt(e.target.value) || 1500 })
-                    }
-                  />
                 </div>
                 <Button
                   onClick={handleCreate}
@@ -211,10 +260,11 @@ export default function AdminEquipesPage() {
                 <Card className="p-6 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-2 border-transparent hover:border-teal/30">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <span className="text-5xl">{team.logo}</span>
+                      <span className="text-5xl">{getTeamEmoji(team.tag)}</span>
                       <div>
                         <h3 className="text-xl font-bold text-gray-900">{team.name}</h3>
-                        <Badge className="bg-teal/10 text-teal mt-1">{team.game}</Badge>
+                        <Badge className="bg-teal/10 text-teal mt-1">{team.tag}</Badge>
+                        <p className="text-sm text-gray-500">{team.country}</p>
                       </div>
                     </div>
                     <div className="flex gap-2">
@@ -248,68 +298,64 @@ export default function AdminEquipesPage() {
                               />
                             </div>
                             <div>
-                              <Label htmlFor="edit-logo">Logo</Label>
+                              <Label htmlFor="edit-tag">Tag</Label>
                               <Input
-                                id="edit-logo"
-                                value={formData.logo}
+                                id="edit-tag"
+                                value={formData.tag}
                                 onChange={(e) =>
-                                  setFormData({ ...formData, logo: e.target.value })
+                                  setFormData({ ...formData, tag: e.target.value })
                                 }
                               />
                             </div>
                             <div>
-                              <Label htmlFor="edit-game">Jeu</Label>
+                              <Label htmlFor="edit-country">Pays</Label>
                               <Input
-                                id="edit-game"
-                                value={formData.game}
+                                id="edit-country"
+                                value={formData.country}
                                 onChange={(e) =>
-                                  setFormData({ ...formData, game: e.target.value })
+                                  setFormData({ ...formData, country: e.target.value })
+                                }
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="edit-logo_url">URL du logo</Label>
+                              <Input
+                                id="edit-logo_url"
+                                value={formData.logo_url}
+                                onChange={(e) =>
+                                  setFormData({ ...formData, logo_url: e.target.value })
                                 }
                               />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                               <div>
-                                <Label htmlFor="edit-wins">Victoires</Label>
+                                <Label htmlFor="edit-founded_year">Année de fondation</Label>
                                 <Input
-                                  id="edit-wins"
+                                  id="edit-founded_year"
                                   type="number"
-                                  value={formData.wins}
+                                  value={formData.founded_year}
                                   onChange={(e) =>
                                     setFormData({
                                       ...formData,
-                                      wins: parseInt(e.target.value) || 0,
+                                      founded_year: parseInt(e.target.value) || new Date().getFullYear(),
                                     })
                                   }
                                 />
                               </div>
                               <div>
-                                <Label htmlFor="edit-losses">Défaites</Label>
+                                <Label htmlFor="edit-total_earnings">Gains totaux (€)</Label>
                                 <Input
-                                  id="edit-losses"
+                                  id="edit-total_earnings"
                                   type="number"
-                                  value={formData.losses}
+                                  value={formData.total_earnings}
                                   onChange={(e) =>
                                     setFormData({
                                       ...formData,
-                                      losses: parseInt(e.target.value) || 0,
+                                      total_earnings: parseInt(e.target.value) || 0,
                                     })
                                   }
                                 />
                               </div>
-                            </div>
-                            <div>
-                              <Label htmlFor="edit-rating">Rating</Label>
-                              <Input
-                                id="edit-rating"
-                                type="number"
-                                value={formData.rating}
-                                onChange={(e) =>
-                                  setFormData({
-                                    ...formData,
-                                    rating: parseInt(e.target.value) || 1500,
-                                  })
-                                }
-                              />
                             </div>
                             <Button
                               onClick={handleUpdate}
@@ -334,35 +380,26 @@ export default function AdminEquipesPage() {
                   <div className="space-y-3">
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div className="flex items-center gap-2 text-gray-600">
-                        <Trophy className="w-4 h-4" />
-                        <span className="text-sm">Victoires</span>
+                        <Calendar className="w-4 h-4" />
+                        <span className="text-sm">Fondée en</span>
                       </div>
-                      <span className="font-bold text-green-600">{team.wins}</span>
+                      <span className="font-bold text-gray-900">{team.founded_year || 'N/A'}</span>
                     </div>
 
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div className="flex items-center gap-2 text-gray-600">
-                        <Users className="w-4 h-4" />
-                        <span className="text-sm">Défaites</span>
+                        <Flag className="w-4 h-4" />
+                        <span className="text-sm">Pays</span>
                       </div>
-                      <span className="font-bold text-red-600">{team.losses}</span>
+                      <span className="font-bold text-gray-900">{team.country}</span>
                     </div>
 
                     <div className="flex items-center justify-between p-3 bg-gradient-to-r from-copper/10 to-teal/10 rounded-lg">
                       <div className="flex items-center gap-2 text-gray-600">
-                        <Shield className="w-4 h-4" />
-                        <span className="text-sm">Rating</span>
+                        <DollarSign className="w-4 h-4" />
+                        <span className="text-sm">Gains totaux</span>
                       </div>
-                      <span className="font-bold text-copper">{team.rating}</span>
-                    </div>
-
-                    <div className="pt-3 border-t">
-                      <div className="text-sm text-gray-500">
-                        Winrate:{' '}
-                        <span className="font-bold text-gray-900">
-                          {((team.wins / (team.wins + team.losses)) * 100).toFixed(1)}%
-                        </span>
-                      </div>
+                      <span className="font-bold text-copper">{formatCurrency(team.total_earnings)}</span>
                     </div>
                   </div>
                 </Card>
