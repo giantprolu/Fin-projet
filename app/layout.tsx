@@ -20,10 +20,10 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="fr">
-        <body className={inter.className}>
+        <body className={`${inter.className} bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 min-h-screen`}>
           <FloatingElements />
           <Navigation />
-          <main className="pt-16">
+          <main className="pt-16 relative z-10">
             {children}
           </main>
         </body>

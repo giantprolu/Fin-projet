@@ -6,8 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Clock, TrendingUp, Users, Flame, Trophy } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
-import { type MatchWithTeams } from '@/lib/database';
 
 interface MatchDisplayData {
   id: string;
@@ -32,9 +32,9 @@ export default function MatchsPage() {
     const fetchMatches = async () => {
       try {
         const response = await fetch('/api/matches');
-        const data: MatchWithTeams[] = await response.json();
+        const data = await response.json();
         
-        const processedMatches: MatchDisplayData[] = data.map(match => {
+        const processedMatches: MatchDisplayData[] = data.map((match: any) => {
           const matchDate = new Date(match.match_date);
           const now = new Date();
           const timeDiff = matchDate.getTime() - now.getTime();
@@ -46,7 +46,7 @@ export default function MatchsPage() {
           if (match.status === 'live') {
             timeDisplay = 'Live';
             isLive = true;
-          } else if (match.status === 'completed') {
+          } else if (match.status === 'finished') {
             timeDisplay = 'Terminé';
           } else if (hoursUntil <= 0) {
             timeDisplay = 'Bientôt';
@@ -57,31 +57,27 @@ export default function MatchsPage() {
             timeDisplay = `Dans ${daysUntil}j`;
           }
 
-          // Obtenir les cotes depuis les odds du match
-          const team1Odds = match.odds?.find(odd => odd.team_id === match.team1_id)?.odds || 2.0;
-          const team2Odds = match.odds?.find(odd => odd.team_id === match.team2_id)?.odds || 2.0;
-
           return {
-            id: match.id,
-            game: match.game.name,
-            tournament: match.tournament.name,
+            id: match.id.toString(),
+            game: match.game,
+            tournament: match.tournament,
             team1: {
               name: match.team1.name,
-              tag: match.team1.tag,
-              logo: getTeamEmoji(match.team1.tag),
-              odds: team1Odds
+              tag: match.team1.tag || '',
+              logo: getTeamLogo(match.team1.tag || '', match.team1.logo),
+              odds: match.team1.odds
             },
             team2: {
               name: match.team2.name,
-              tag: match.team2.tag,
-              logo: getTeamEmoji(match.team2.tag),
-              odds: team2Odds
+              tag: match.team2.tag || '',
+              logo: getTeamLogo(match.team2.tag || '', match.team2.logo),
+              odds: match.team2.odds
             },
             time: timeDisplay,
             live: isLive,
             popular: Math.random() > 0.5, // Simulé pour l'instant
             status: match.status,
-            format: match.format,
+            format: 'BO3', // Valeur par défaut
             matchDate: match.match_date
           };
         });
@@ -97,17 +93,27 @@ export default function MatchsPage() {
     fetchMatches();
   }, []);
 
-  const getTeamEmoji = (tag: string): string => {
-    const emojis: { [key: string]: string } = {
-      'VIT': '🔥',
-      'KC': '👑',
-      'LDLC': '⭐',
-      'BDS': '🛡️',
-      'SLY': '🐍',
-      'GM': '🎯',
-      'DEFAULT': '🏆'
+  const getTeamLogo = (tag: string, logoUrl?: string): string => {
+    // Si un logo personnalisé est fourni, l'utiliser
+    if (logoUrl && logoUrl.startsWith('/assets/')) {
+      return logoUrl;
+    }
+    
+    // Sinon, utiliser les logos par défaut
+    const logos: { [key: string]: string } = {
+      'VIT': '/assets/Team_Vitality_Logo_2018.png',
+      'KC': '/assets/Karmine_Corp.svg',
+      'LDLC': '/assets/TeamLDLClogo.png',
+      'BDS': '/assets/Team_BDS.png',
+      'SLY': '/assets/Logo_Solary.png',
+      'GM': '/assets/gentlemates.webp',
+      'GO': '/assets/GamersOrigin.png',
+      'MCES': '/assets/MCES.png',
+      'MND': '/assets/Mandatory.png',
+      'ATL': '/assets/atletico.webp',
+      'DEFAULT': '/assets/Team_Vitality_Logo_2018.png'
     };
-    return emojis[tag] || emojis['DEFAULT'];
+    return logos[tag] || logos['DEFAULT'];
   };
 
   const filters = ['Tous', 'Live', 'League of Legends', 'Counter-Strike 2', 'Valorant'];
@@ -120,42 +126,34 @@ export default function MatchsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-copper-50 py-12 px-4">
-        <div className="container mx-auto max-w-7xl">
-          <div className="flex justify-center items-center h-64">
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              className="w-12 h-12 border-4 border-copper border-t-transparent rounded-full"
-            />
-          </div>
+      <div className="min-h-screen p-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-copper mx-auto"></div>
+          <p className="text-white mt-4">Chargement des matchs...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-copper-50 py-12 px-4">
-      <div className="container mx-auto max-w-7xl">
-        <motion.div
+    <div className="min-h-screen p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="mb-12"
+          className="text-center mb-12"
         >
-          <h1 className="text-5xl md:text-6xl font-bold mb-4">
-            <span className="bg-gradient-to-r from-copper to-teal bg-clip-text text-transparent">
-              Matchs Disponibles
-            </span>
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-copper to-sage bg-clip-text text-transparent mb-4">
+            Matchs E-Sport
           </h1>
-          <p className="text-xl text-gray-600">
-            Découvrez les meilleurs matchs esports et placez vos paris
+          <p className="text-slate-300 text-lg">
+            Découvrez et pariez sur les meilleurs matchs d&apos;esport
           </p>
-          <div className="mt-4 text-sm text-gray-500">
-            {matches.length} matchs disponibles
-          </div>
         </motion.div>
 
+        {/* Filters */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -170,10 +168,10 @@ export default function MatchsPage() {
             >
               <Badge
                 variant={selectedFilter === filter ? 'default' : 'outline'}
-                className={`px-4 py-2 text-sm cursor-pointer ${
+                className={`px-4 py-2 text-white cursor-pointer ${
                   selectedFilter === filter
                     ? 'bg-copper text-white hover:bg-copper-600'
-                    : 'hover:bg-copper/10'
+                    : 'hover:bg-copper/30'
                 }`}
                 onClick={() => setSelectedFilter(filter)}
               >
@@ -189,11 +187,11 @@ export default function MatchsPage() {
             animate={{ opacity: 1 }}
             className="text-center py-12"
           >
-            <Trophy className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-600 mb-2">
+            <Trophy className="w-16 h-16 text-slate-400 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-slate-300 mb-2">
               Aucun match trouvé
             </h3>
-            <p className="text-gray-500">
+            <p className="text-slate-400">
               Essayez de changer votre filtre ou revenez plus tard
             </p>
           </motion.div>
@@ -206,7 +204,7 @@ export default function MatchsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
               >
-                <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-2 border-transparent hover:border-copper/30 bg-white">
+                <Card className="overflow-hidden bg-slate-800/90 border border-slate-700 backdrop-blur-sm hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 hover:border-copper/50">
                   <div className="p-6">
                     <div className="flex justify-between items-start mb-4">
                       <div>
@@ -216,8 +214,8 @@ export default function MatchsPage() {
                         >
                           {match.game}
                         </Badge>
-                        <p className="text-sm text-gray-500">{match.tournament}</p>
-                        <p className="text-xs text-gray-400">{match.format}</p>
+                        <p className="text-sm text-slate-300">{match.tournament}</p>
+                        <p className="text-xs text-slate-400">{match.format}</p>
                       </div>
                       <div className="flex gap-2 flex-col">
                         {match.live && (
@@ -232,7 +230,7 @@ export default function MatchsPage() {
                           </motion.div>
                         )}
                         {match.status === 'completed' && (
-                          <Badge variant="outline" className="border-gray-400 text-gray-600">
+                          <Badge variant="outline" className="border-slate-400 text-slate-300">
                             Terminé
                           </Badge>
                         )}
@@ -248,13 +246,20 @@ export default function MatchsPage() {
                     <div className="space-y-4 mb-6">
                       <motion.div
                         whileHover={{ x: 5 }}
-                        className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-gray-50 to-transparent hover:from-copper-50 transition-colors"
+                        className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-slate-800/50 to-transparent hover:from-copper/20 transition-colors"
                       >
                         <div className="flex items-center gap-3">
-                          <span className="text-3xl">{match.team1.logo}</span>
+                          <div className="w-12 h-12 relative">
+                            <Image
+                              src={match.team1.logo || '/assets/Team_Vitality_Logo_2018.png'}
+                              alt={`Logo ${match.team1.name}`}
+                              fill
+                              className="object-contain"
+                            />
+                          </div>
                           <div>
-                            <p className="font-bold text-gray-900">{match.team1.name}</p>
-                            <p className="text-xs text-gray-500">{match.team1.tag}</p>
+                            <p className="font-bold text-white">{match.team1.name}</p>
+                            <p className="text-xs text-slate-400">{match.team1.tag}</p>
                           </div>
                         </div>
                         <motion.div
@@ -265,17 +270,24 @@ export default function MatchsPage() {
                         </motion.div>
                       </motion.div>
 
-                      <div className="text-center text-gray-400 font-semibold">VS</div>
+                      <div className="text-center text-slate-300 font-semibold">VS</div>
 
                       <motion.div
                         whileHover={{ x: 5 }}
-                        className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-gray-50 to-transparent hover:from-teal-50 transition-colors"
+                        className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-slate-800/50 to-transparent hover:from-teal/20 transition-colors"
                       >
                         <div className="flex items-center gap-3">
-                          <span className="text-3xl">{match.team2.logo}</span>
+                          <div className="w-12 h-12 relative">
+                            <Image
+                              src={match.team2.logo || '/assets/Team_Vitality_Logo_2018.png'}
+                              alt={`Logo ${match.team2.name}`}
+                              fill
+                              className="object-contain"
+                            />
+                          </div>
                           <div>
-                            <p className="font-bold text-gray-900">{match.team2.name}</p>
-                            <p className="text-xs text-gray-500">{match.team2.tag}</p>
+                            <p className="font-bold text-white">{match.team2.name}</p>
+                            <p className="text-xs text-slate-400">{match.team2.tag}</p>
                           </div>
                         </div>
                         <motion.div
@@ -287,7 +299,7 @@ export default function MatchsPage() {
                       </motion.div>
                     </div>
 
-                    <div className="flex items-center justify-between mb-4 text-sm text-gray-600">
+                    <div className="flex items-center justify-between mb-4 text-sm text-slate-300">
                       <div className="flex items-center gap-2">
                         <Clock className="w-4 h-4" />
                         {match.time}

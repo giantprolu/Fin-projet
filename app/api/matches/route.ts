@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
-import { dbService } from '@/lib/db-service';
+import { DatabaseService } from '@/lib/db-service';
+
+const db = new DatabaseService();
 
 export async function GET() {
   try {
-    const matches = dbService.getMatchesWithDetails();
+    const matches = db.getSimpleMatches();
     return NextResponse.json(matches);
   } catch (error) {
     console.error('Erreur lors de la récupération des matchs:', error);

@@ -1,0 +1,61 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { DatabaseService } from '@/lib/db-service';
+
+const db = new DatabaseService();
+
+export async function GET() {
+  try {
+    const matches = db.getSimpleMatches();
+    return NextResponse.json({ matches });
+  } catch (error) {
+    console.error('Erreur lors de la récupération des matchs:', error);
+    return NextResponse.json(
+      { error: 'Erreur lors de la récupération des matchs' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { game, tournament, team1, team2, team1Odds, team2Odds, date, time, status } = body;
+
+    if (!game || !tournament || !team1 || !team2 || !date || !time) {
+      return NextResponse.json(
+        { error: 'Données manquantes' },
+        { status: 400 }
+      );
+    }
+
+    const matchId = db.createSimpleMatch({
+      game,
+      tournament,
+      team1_name: team1,
+      team2_name: team2,
+      team1_odds: team1Odds || 2.0,
+      team2_odds: team2Odds || 2.0,
+      date,
+      time,
+      status: status || 'scheduled'
+    });
+
+    if (matchId) {
+      return NextResponse.json({ 
+        message: 'Match créé avec succès',
+        matchId 
+      });
+    } else {
+      return NextResponse.json(
+        { error: 'Erreur lors de la création du match' },
+        { status: 500 }
+      );
+    }
+  } catch (error) {
+    console.error('Erreur lors de la création du match:', error);
+    return NextResponse.json(
+      { error: 'Erreur serveur' },
+      { status: 500 }
+    );
+  }
+}

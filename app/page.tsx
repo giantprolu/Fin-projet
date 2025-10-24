@@ -74,7 +74,7 @@ export default function Home() {
     <div className="min-h-screen">
       <section
         ref={heroRef}
-        className="relative h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-gray-50 via-white to-copper-50"
+        className="relative h-screen flex items-center justify-center overflow-hidden"
       >
         <motion.div
           style={{ y, opacity }}
@@ -97,9 +97,10 @@ export default function Home() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="text-6xl md:text-7xl lg:text-8xl font-bold mb-6 leading-tight"
           >
-            <span className="bg-gradient-to-r from-gray-900 via-copper to-teal bg-clip-text text-transparent">
-              L&apos;Arène des
+            <span className="bg-gradient-to-r from-copper to-sage bg-clip-text text-transparent">
+              L&apos;Arène 
             </span>
+            <span className="text-copper/50 ml-2">des</span>
             <br />
             <span className="bg-gradient-to-r from-teal via-copper to-gray-900 bg-clip-text text-transparent">
               Champions
@@ -110,7 +111,7 @@ export default function Home() {
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="text-xl md:text-2xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed"
+            className="text-xl md:text-2xl text-slate-300 mb-12 max-w-3xl mx-auto leading-relaxed"
           >
             Plongez dans l&apos;univers électrisant des paris esports.
             Analyses en temps réel, cotes premium et expérience immersive.
@@ -144,7 +145,7 @@ export default function Home() {
         </motion.div>
 
         <motion.div
-          className="absolute bottom-0 left-0 w-full h-48 bg-gradient-to-t from-white to-transparent"
+          className="absolute bottom-0 left-0 w-full h-48 bg-gradient-to-t from-slate-900/50 to-transparent"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1 }}
@@ -160,10 +161,10 @@ export default function Home() {
             transition={{ duration: 0.6 }}
             className="text-center mb-16"
           >
-            <h2 className="text-5xl font-bold mb-4 text-gray-900">
+            <h2 className="text-5xl font-bold text-copper/50 ml-2">
               Pourquoi <span className="text-copper">GrandPari</span> ?
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-xl text-slate-300 max-w-2xl mx-auto">
               Une expérience de paris esports révolutionnaire
             </p>
           </motion.div>
@@ -179,17 +180,17 @@ export default function Home() {
                   viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: index * 0.1 }}
                 >
-                  <Card className="p-8 h-full hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-2 border-transparent hover:border-copper/20 bg-gradient-to-br from-white to-gray-50">
+                  <Card className="p-8 h-full bg-slate-800/90 border border-slate-700 backdrop-blur-sm hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 hover:border-copper/50">
                     <motion.div
                       whileHover={{ scale: 1.1, rotate: 5 }}
                       className="w-16 h-16 bg-gradient-to-br from-copper to-copper-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg"
                     >
                       <Icon className="w-8 h-8 text-white" />
                     </motion.div>
-                    <h3 className="text-2xl font-bold mb-4 text-gray-900">
+                    <h3 className="text-2xl font-bold mb-4 text-white">
                       {feature.title}
                     </h3>
-                    <p className="text-gray-600 leading-relaxed">
+                    <p className="text-slate-300 leading-relaxed">
                       {feature.description}
                     </p>
                   </Card>
@@ -200,64 +201,49 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-24 px-4 bg-gradient-to-br from-gray-50 to-copper-50">
-        <div className="container mx-auto max-w-7xl">
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
+            <section className="py-24 px-4">
+        <div className="max-w-6xl mx-auto text-center">
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="text-center mb-20"
+            className="text-4xl font-bold text-white mb-6"
           >
-            <h2 className="text-5xl font-bold mb-4 text-gray-900">
-              Comment ça <span className="text-teal">marche</span> ?
-            </h2>
-            <p className="text-xl text-gray-600">
-              Trois étapes simples pour commencer
-            </p>
-          </motion.div>
+            Pourquoi choisir <span className="text-copper">GrandPari</span> ?
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="text-xl text-slate-300 mb-16 max-w-3xl mx-auto"
+          >
+            Découvrez une expérience de paris esports révolutionnaire avec des fonctionnalités innovantes
+          </motion.p>
 
-          <div className="grid md:grid-cols-3 gap-12 relative">
-            {steps.map((step, index) => {
-              const Icon = step.icon;
-              return (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6, delay: index * 0.2 }}
-                  className="relative"
-                >
-                  <div className="text-center">
-                    <motion.div
-                      whileHover={{ scale: 1.05 }}
-                      className="relative inline-block mb-8"
-                    >
-                      <div className="w-24 h-24 bg-gradient-to-br from-copper to-teal rounded-3xl flex items-center justify-center mx-auto shadow-2xl">
-                        <Icon className="w-12 h-12 text-white" />
-                      </div>
-                      <div className="absolute -top-4 -right-4 w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-lg border-4 border-copper">
-                        <span className="text-2xl font-bold text-copper">
-                          {step.number}
-                        </span>
-                      </div>
-                    </motion.div>
-                    <h3 className="text-2xl font-bold mb-4 text-gray-900">
-                      {step.title}
-                    </h3>
-                    <p className="text-gray-600 text-lg leading-relaxed">
-                      {step.description}
-                    </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {features.map((feature, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+              >
+                <Card className="p-8 h-full bg-slate-800/90 border border-slate-700 backdrop-blur-sm hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 hover:border-copper/50">
+                  <div
+                    className="w-16 h-16 bg-gradient-to-br from-copper to-copper-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg"
+                  >
+                    <feature.icon className="w-8 h-8 text-white" />
                   </div>
-                </motion.div>
-              );
-            })}
+                  <h3 className="text-xl font-semibold mb-4 text-white">{feature.title}</h3>
+                  <p className="text-slate-300 leading-relaxed">{feature.description}</p>
+                </Card>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
 
-      <section className="py-24 px-4 bg-gradient-to-br from-teal-900 to-teal-700 text-white relative overflow-hidden">
+      <section className="py-24 px-4 bg-gradient-to-br from-slate-800/50 to-slate-700/50 backdrop-blur-sm text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yIDItNCAyLTRzMiAyIDIgNHYyYzAgMi0yIDQtMiA0cy0yLTItMi00di0yem0wLTMwYzAtMiAyLTQgMi00czIgMiAyIDR2MmMwIDItMiA0LTIgNHMtMi0yLTItNHYtMnpNMCA0YzAtMiAyLTQgMi00czIgMiAyIDR2MmMwIDItMiA0LTIgNHMtMi0yLTItNHYtMnoiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-20" />
 
         <div className="container mx-auto max-w-7xl relative z-10">
@@ -328,7 +314,7 @@ export default function Home() {
             transition={{ duration: 0.6 }}
             className="text-center mb-12"
           >
-            <h2 className="text-4xl font-bold mb-4 text-gray-900">
+            <h2 className="text-4xl font-bold mb-4 text-white">
               Nos <span className="text-copper">Partenaires</span>
             </h2>
           </motion.div>

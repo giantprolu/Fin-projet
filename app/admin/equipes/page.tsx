@@ -145,7 +145,7 @@ export default function AdminEquipesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-copper-50 py-12 px-4">
+      <div className="min-h-screen py-12 px-4">
         <div className="container mx-auto max-w-7xl">
           <div className="flex justify-center items-center h-64">
             <motion.div
@@ -243,7 +243,7 @@ export default function AdminEquipesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-teal-50 py-12 px-4">
+    <div className="min-h-screen py-12 px-4">
       <div className="container mx-auto max-w-7xl">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -252,12 +252,10 @@ export default function AdminEquipesPage() {
           className="mb-8 flex items-center justify-between"
         >
           <div>
-            <h1 className="text-5xl font-bold mb-2">
-              <span className="bg-gradient-to-r from-teal to-copper bg-clip-text text-transparent">
-                Gestion des Équipes
-              </span>
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-copper to-sage bg-clip-text text-transparent mb-2">
+              Gestion des Équipes
             </h1>
-            <p className="text-xl text-gray-600">
+            <p className="text-xl text-slate-300">
               Créez, modifiez et gérez les équipes esports
             </p>
           </div>
@@ -319,7 +317,7 @@ export default function AdminEquipesPage() {
                       className="cursor-pointer"
                     />
                     {uploading && (
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <div className="flex items-center gap-2 text-sm text-slate-300">
                         <div className="w-4 h-4 border-2 border-copper border-t-transparent rounded-full animate-spin" />
                         Upload en cours...
                       </div>
@@ -332,8 +330,9 @@ export default function AdminEquipesPage() {
                           width={48}
                           height={48}
                           className="object-contain rounded border"
+                          style={{ width: 'auto', height: 'auto' }}
                         />
-                        <span className="text-sm text-gray-600">Logo sélectionné</span>
+                        <span className="text-sm text-slate-300">Logo sélectionné</span>
                       </div>
                     )}
                   </div>
@@ -383,7 +382,7 @@ export default function AdminEquipesPage() {
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ delay: index * 0.05 }}
               >
-                <Card className="p-6 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-2 border-transparent hover:border-teal/30">
+                <Card className="p-6 bg-slate-800/90 border border-slate-700 backdrop-blur-sm hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 hover:border-copper/50">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <div className="w-14 h-14 relative">
@@ -393,12 +392,13 @@ export default function AdminEquipesPage() {
                           width={56}
                           height={56}
                           className="object-contain rounded-lg"
+                          style={{ width: 'auto', height: 'auto' }}
                         />
                       </div>
                       <div>
-                        <h3 className="text-xl font-bold text-gray-900">{team.name}</h3>
+                        <h3 className="text-xl font-bold text-white">{team.name}</h3>
                         <Badge className="bg-teal/10 text-teal mt-1">{team.tag}</Badge>
-                        <p className="text-sm text-gray-500">{team.country}</p>
+                        <p className="text-sm text-slate-300">{team.country}</p>
                       </div>
                     </div>
                     <div className="flex gap-2">
@@ -419,6 +419,9 @@ export default function AdminEquipesPage() {
                         <DialogContent>
                           <DialogHeader>
                             <DialogTitle>Modifier l&apos;équipe</DialogTitle>
+                            <DialogDescription>
+                              Modifiez les informations de l&apos;équipe
+                            </DialogDescription>
                           </DialogHeader>
                           <div className="space-y-4 mt-4">
                             <div>
@@ -476,6 +479,7 @@ export default function AdminEquipesPage() {
                                       width={48}
                                       height={48}
                                       className="object-contain rounded border"
+                                      style={{ width: 'auto', height: 'auto' }}
                                     />
                                     <span className="text-sm text-gray-600">Logo actuel</span>
                                   </div>
@@ -538,7 +542,7 @@ export default function AdminEquipesPage() {
                         <Calendar className="w-4 h-4" />
                         <span className="text-sm">Fondée en</span>
                       </div>
-                      <span className="font-bold text-gray-900">{team.founded_year || 'N/A'}</span>
+                      <span className="font-bold text-black">{team.founded_year || 'N/A'}</span>
                     </div>
 
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -546,7 +550,7 @@ export default function AdminEquipesPage() {
                         <Flag className="w-4 h-4" />
                         <span className="text-sm">Pays</span>
                       </div>
-                      <span className="font-bold text-gray-900">{team.country}</span>
+                      <span className="font-bold text-black">{team.country}</span>
                     </div>
 
                     <div className="flex items-center justify-between p-3 bg-gradient-to-r from-copper/10 to-teal/10 rounded-lg">

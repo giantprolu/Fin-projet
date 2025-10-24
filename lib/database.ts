@@ -71,6 +71,20 @@ export interface Match {
   created_at: string;
 }
 
+export interface SimpleMatch {
+  id: number;
+  game: string;
+  tournament: string;
+  team1_id: number;
+  team2_id: number;
+  match_date: string;
+  match_time: string;
+  status: 'scheduled' | 'live' | 'finished';
+  team1_odds: number;
+  team2_odds: number;
+  created_at: string;
+}
+
 export interface MatchWithTeams extends Match {
   team1: Team;
   team2: Team;
@@ -92,12 +106,33 @@ export interface Tournament {
 
 export interface User {
   id: string;
+  clerk_id: string;
   username: string;
   email: string;
-  password_hash?: string;
   balance: number;
   total_bet: number;
   total_won: number;
+  created_at: string;
+}
+
+export interface UserWallet {
+  id: string;
+  user_id: string;
+  balance: number;
+  total_deposited: number;
+  total_withdrawn: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WalletTransaction {
+  id: string;
+  user_id: string;
+  type: 'bet' | 'win' | 'deposit' | 'withdrawal' | 'initial_bonus';
+  amount: number;
+  balance_after: number;
+  description: string;
+  reference_id?: string; // Pour lier à un pari ou autre
   created_at: string;
 }
 

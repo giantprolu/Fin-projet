@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useUser } from '@clerk/nextjs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Coins, TrendingUp, Target, Trophy } from 'lucide-react';
-import { useUserBalance } from '@/hooks/use-user-balance';
 
 interface UserStats {
   user?: { balance: number };
@@ -27,39 +26,21 @@ interface UserBet {
   id: number;
   match_id: number;
   user_id: number;
-  team_id: number;
   amount: number;
-  odds: number;
-  potential_payout: number;
+  bet_type: string;
+  outcome: string;
   status: string;
-  placed_at: string;
-  
-  // Données du match
-  match_status: string;
-  game: string;
-  match_date: string;
-  winner_id?: number;
-  
-  // Données des équipes
-  team1_name: string;
-  team1_tag: string;
-  team1_logo: string;
-  team2_name: string;
-  team2_tag: string;
-  team2_logo: string;
-  bet_team_name: string;
-  bet_team_tag: string;
-  bet_team_logo: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export default function ResultatsPage() {
   const { user } = useUser();
-  const { userData, balance, loading: userLoading } = useUserBalance();
   const [userStats, setUserStats] = useState<UserStats | null>(null);
   const [userBets, setUserBets] = useState<UserBet[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const initializeUser = useCallback(async () => {
+  const initializeUser = async () => {
     try {
       console.log('Initialisation utilisateur pour:', user?.id);
       const response = await fetch('/api/user', {
@@ -83,9 +64,9 @@ export default function ResultatsPage() {
       console.error('Erreur lors de l\'initialisation utilisateur:', error);
       return null;
     }
-  }, [user?.id]);
+  };
 
-  const loadUserStats = useCallback(async () => {
+  const loadUserStats = async () => {
     try {
       console.log('Chargement des statistiques...');
       
@@ -112,14 +93,14 @@ export default function ResultatsPage() {
         console.log('Pas de stats, création de stats par défaut');
         // Si pas de stats, créer des stats par défaut pour nouvel utilisateur
         setUserStats({
-          user: { balance },
+          user: { balance: 100 },
           totalBets: 0,
           wonBets: 0,
           lostBets: 0,
           pendingBets: 0,
           winRate: 0,
           profit: 0,
-          balance,
+          balance: 100,
           totalStake: 0,
           totalPayout: 0,
           dailyStats: [],
@@ -148,10 +129,10 @@ export default function ResultatsPage() {
     } finally {
       setLoading(false);
     }
-  }, [balance]);
+  };
 
   useEffect(() => {
-    if (user && userData) {
+    if (user) {
       console.log('Utilisateur Clerk connecté:', user.id);
       initializeUser().then(() => {
         loadUserStats();
@@ -160,11 +141,11 @@ export default function ResultatsPage() {
       console.log('Aucun utilisateur Clerk connecté');
       setLoading(false);
     }
-  }, [user, userData, initializeUser, loadUserStats]);
+  }, [user]);
 
   if (loading) {
     return (
-      <div className="min-h-screen p-6 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-copper mx-auto"></div>
           <p className="text-white mt-4">Chargement de vos statistiques...</p>
@@ -175,7 +156,7 @@ export default function ResultatsPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen p-6 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-white mb-4">Connexion requise</h1>
           <p className="text-slate-300">Vous devez être connecté pour voir vos résultats.</p>
@@ -185,7 +166,7 @@ export default function ResultatsPage() {
   }
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div 
@@ -209,7 +190,7 @@ export default function ResultatsPage() {
           transition={{ duration: 0.6, delay: 0.1 }}
           className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"
         >
-          <Card className="bg-slate-800/90 border border-slate-700 backdrop-blur-sm">
+          <Card className="bg-gradient-to-br from-slate-800 to-slate-700 border-slate-600">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-slate-300">Portefeuille</CardTitle>
               <Coins className="h-4 w-4 text-copper" />
@@ -224,7 +205,7 @@ export default function ResultatsPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-800/90 border border-slate-700 backdrop-blur-sm">
+          <Card className="bg-gradient-to-br from-slate-800 to-slate-700 border-slate-600">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-slate-300">Paris totaux</CardTitle>
               <Target className="h-4 w-4 text-sage" />
@@ -239,7 +220,7 @@ export default function ResultatsPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-800/90 border border-slate-700 backdrop-blur-sm">
+          <Card className="bg-gradient-to-br from-slate-800 to-slate-700 border-slate-600">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-slate-300">Taux de réussite</CardTitle>
               <Trophy className="h-4 w-4 text-yellow-500" />
@@ -254,7 +235,7 @@ export default function ResultatsPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-800/90 border border-slate-700 backdrop-blur-sm">
+          <Card className="bg-gradient-to-br from-slate-800 to-slate-700 border-slate-600">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-slate-300">Profit/Perte</CardTitle>
               <TrendingUp className="h-4 w-4 text-green-500" />
@@ -277,64 +258,40 @@ export default function ResultatsPage() {
           transition={{ duration: 0.6, delay: 0.3 }}
           className="mt-8"
         >
-          <Card className="bg-slate-800/90 border border-slate-700 backdrop-blur-sm">
+          <Card className="bg-gradient-to-br from-slate-800 to-slate-700 border-slate-600">
             <CardHeader>
               <CardTitle className="text-xl text-white">Mes Paris Récents</CardTitle>
             </CardHeader>
             <CardContent>
               {userBets.length > 0 ? (
                 <div className="space-y-4">
-                  {userBets.slice(0, 5).map((bet) => {
-                    // Déterminer le statut du pari basé sur le statut du match
-                    let betStatus = 'pending';
-                    let betStatusLabel = 'En attente';
-                    
-                    if (bet.match_status === 'scheduled') {
-                      betStatusLabel = 'En attente';
-                    } else if (bet.match_status === 'live') {
-                      betStatusLabel = 'En cours';
-                    } else if (bet.match_status === 'finished') {
-                      // Simulation aléatoire mais cohérente basée sur l'ID du pari
-                      const seed = bet.id * 12345; // Seed basé sur l'ID pour cohérence
-                      const random = (seed % 1000) / 1000; // Pseudo-random entre 0 et 1
-                      
-                      if (bet.winner_id) {
-                        // Si on a un vrai winner_id, l'utiliser
-                        betStatus = bet.winner_id === bet.team_id ? 'won' : 'lost';
-                        betStatusLabel = bet.winner_id === bet.team_id ? 'Gagné' : 'Perdu';
-                      } else {
-                        // Sinon, simulation aléatoire mais cohérente
-                        betStatus = random > 0.5 ? 'won' : 'lost';
-                        betStatusLabel = random > 0.5 ? 'Gagné' : 'Perdu';
-                      }
-                    }
-
-                    return (
-                      <div key={bet.id} className="flex justify-between items-center p-3 bg-slate-900/50 rounded-lg">
-                        <div>
-                          <p className="text-white font-medium">Pari #{bet.id}</p>
-                          <p className="text-slate-400 text-sm">
-                            {bet.bet_team_name || 'Équipe inconnue'} - {bet.game || 'Match'}
-                          </p>
-                          <p className="text-xs text-slate-500">
-                            {bet.placed_at ? new Date(bet.placed_at).toLocaleDateString('fr-FR') : 'Date inconnue'}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-white font-bold">{bet.amount}€</p>
-                          <Badge 
-                            className={
-                              betStatus === 'won' ? 'bg-green-600' :
-                              betStatus === 'lost' ? 'bg-red-600' :
-                              'bg-yellow-600'
-                            }
-                          >
-                            {betStatusLabel}
-                          </Badge>
-                        </div>
+                  {userBets.slice(0, 5).map((bet) => (
+                    <div key={bet.id} className="flex justify-between items-center p-3 bg-slate-900/50 rounded-lg">
+                      <div>
+                        <p className="text-white font-medium">Pari #{bet.id}</p>
+                        <p className="text-slate-400 text-sm">
+                          {bet.bet_type} - {bet.outcome}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          {new Date(bet.created_at).toLocaleDateString()}
+                        </p>
                       </div>
-                    );
-                  })}
+                      <div className="text-right">
+                        <p className="text-white font-bold">{bet.amount}€</p>
+                        <Badge 
+                          className={
+                            bet.status === 'won' ? 'bg-green-600' :
+                            bet.status === 'lost' ? 'bg-red-600' :
+                            'bg-yellow-600'
+                          }
+                        >
+                          {bet.status === 'won' ? 'Gagné' :
+                           bet.status === 'lost' ? 'Perdu' :
+                           'En cours'}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <div className="text-center py-8">

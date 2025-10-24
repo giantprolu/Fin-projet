@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,99 +16,148 @@ import {
 } from '@/components/ui/dialog';
 import { Trophy, TrendingUp, CircleCheck as CheckCircle2, Sparkles, Wallet } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
+import { useUserBalance } from '@/hooks/use-user-balance';
+import Image from 'next/image';
 
-const availableMatches = [
-  {
-    id: 1,
-    game: 'Valorant',
-    team1: { name: 'Fnatic', logo: '🦊', odds: 1.85 },
-    team2: { name: 'Loud', logo: '🔊', odds: 2.10 },
-    tournament: 'VCT Masters',
-  },
-  {
-    id: 2,
-    game: 'League of Legends',
-    team1: { name: 'G2 Esports', logo: '⚔️', odds: 1.65 },
-    team2: { name: 'Fnatic', logo: '🦊', odds: 2.30 },
-    tournament: 'LEC Spring',
-  },
-  {
-    id: 3,
-    game: 'CS:GO',
-    team1: { name: 'Navi', logo: '⭐', odds: 1.90 },
-    team2: { name: 'FaZe Clan', logo: '💀', odds: 1.95 },
-    tournament: 'IEM Katowice',
-  },
-];
+interface Match {
+  id: number;
+  game: string;
+  tournament: string;
+  team1: { name: string; tag: string; logo?: string; odds: number };
+  team2: { name: string; tag: string; logo?: string; odds: number };
+  status: string;
+  match_date: string;
+  match_time: string;
+}
 
 export default function ParierPage() {
-  const { isSignedIn, user } = useUser();
+  const { isSignedIn } = useUser();
+  const { balance, placeBet, loading: userLoading } = useUserBalance();
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedMatch, setSelectedMatch] = useState<number | null>(null);
   const [selectedTeam, setSelectedTeam] = useState<'team1' | 'team2' | null>(null);
   const [betAmount, setBetAmount] = useState('');
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  const [userBalance] = useState(1000); // Solde simulé, à remplacer par des vraies données
 
-  const handlePlaceBet = () => {
+  useEffect(() => {
+    const fetchMatches = async () => {
+      try {
+        const response = await fetch('/api/matches');
+        const data = await response.json();
+        
+        // Filtrer seulement les matchs programmés (pas finis)
+        const availableMatches = data.filter((match: any) => 
+          match.status === 'scheduled' || match.status === 'live'
+        );
+        
+        setMatches(availableMatches);
+      } catch (error) {
+        console.error('Erreur lors du chargement des matchs:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMatches();
+  }, []);
+
+  const renderTeamLogo = (logo: string | undefined, teamName: string) => {
+    if (logo && logo.startsWith('/')) {
+      return (
+        <Image
+          src={logo}
+          alt={teamName}
+          width={40}
+          height={40}
+          className="rounded-full object-cover"
+        />
+      );
+    }
+    // Fallback avec emoji ou initiales
+    return (
+      <div className="w-10 h-10 bg-gradient-to-br from-copper to-teal rounded-full flex items-center justify-center text-white font-bold">
+        {teamName.substring(0, 2).toUpperCase()}
+      </div>
+    );
+  };
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [processingBet, setProcessingBet] = useState(false);
+
+  const handlePlaceBet = async () => {
     if (selectedMatch !== null && selectedTeam && betAmount) {
-      setShowConfirmation(true);
-      setTimeout(() => {
-        setShowConfirmation(false);
-        setSelectedMatch(null);
-        setSelectedTeam(null);
-        setBetAmount('');
-      }, 3000);
+      setProcessingBet(true);
+      
+      try {
+        const selectedMatchData = matches.find((m) => m.id === selectedMatch);
+        if (!selectedMatchData) return;
+
+        await placeBet(
+          selectedMatch,
+          selectedTeam === 'team1' ? 1 : 2, // ID fictif pour la démo
+          parseFloat(betAmount),
+          selectedMatchData[selectedTeam].odds
+        );
+
+        setShowConfirmation(true);
+        
+        setTimeout(() => {
+          setShowConfirmation(false);
+          setSelectedMatch(null);
+          setSelectedTeam(null);
+          setBetAmount('');
+        }, 3000);
+      } catch (error) {
+        alert(error instanceof Error ? error.message : 'Erreur lors du placement du pari');
+      } finally {
+        setProcessingBet(false);
+      }
     }
   };
 
-  const selectedMatchData = availableMatches.find((m) => m.id === selectedMatch);
+  const selectedMatchData = matches.find((m) => m.id === selectedMatch);
   const potentialWin = selectedMatchData && selectedTeam && betAmount
     ? (parseFloat(betAmount) * selectedMatchData[selectedTeam].odds).toFixed(2)
     : '0.00';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-teal-50 py-12 px-4">
-      <div className="container mx-auto max-w-6xl">
+    <div className="min-h-screen p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="mb-12"
+          className="text-center mb-12"
         >
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <h1 className="text-5xl md:text-6xl font-bold mb-4">
-                <span className="bg-gradient-to-r from-teal to-copper bg-clip-text text-transparent">
-                  Placer un Pari
-                </span>
-              </h1>
-              <p className="text-xl text-gray-600">
-                Sélectionnez votre match et montant pour gagner gros
-              </p>
-            </div>
-            
-            {isSignedIn && (
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                <Card className="p-4 bg-gradient-to-r from-copper/10 to-teal/10 border-copper/20">
-                  <div className="flex items-center gap-3">
-                    <Wallet className="w-5 h-5 text-copper" />
-                    <div>
-                      <p className="text-sm text-gray-600">Bienvenue {user?.firstName}</p>
-                      <p className="font-bold text-lg text-gray-900">
-                        {userBalance.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}
-                      </p>
-                    </div>
-                  </div>
-                </Card>
-              </motion.div>
-            )}
-          </div>
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-copper to-sage bg-clip-text text-transparent mb-4">
+            Placer un Pari
+          </h1>
+          <p className="text-slate-300 text-lg">
+            Sélectionnez votre match et montant pour gagner gros
+          </p>
         </motion.div>
 
+        {/* Wallet Info */}
+        {isSignedIn && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="mb-8"
+          >
+            <Card className="bg-slate-800/90 border border-slate-700 backdrop-blur-sm p-4 max-w-sm mx-auto">
+              <div className="flex items-center gap-3">
+                <Wallet className="w-6 h-6 text-copper" />
+                <div>
+                  <p className="text-sm text-slate-400">Solde disponible</p>
+                  <p className="text-2xl font-bold text-white">{balance.toFixed(2)}€</p>
+                </div>
+              </div>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Matches Section */}
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
             <motion.div
@@ -122,7 +171,20 @@ export default function ParierPage() {
               </h2>
 
               <div className="space-y-4">
-                {availableMatches.map((match, index) => (
+                {loading ? (
+                  <div className="flex justify-center items-center py-12">
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      className="w-12 h-12 border-4 border-copper border-t-transparent rounded-full"
+                    />
+                  </div>
+                ) : matches.length === 0 ? (
+                  <div className="text-center py-12">
+                    <p className="text-slate-400 text-lg">Aucun match disponible pour le moment</p>
+                  </div>
+                ) : (
+                  matches.map((match, index) => (
                   <motion.div
                     key={match.id}
                     initial={{ opacity: 0, y: 20 }}
@@ -142,7 +204,7 @@ export default function ParierPage() {
                           <Badge className="bg-teal text-white mb-2">
                             {match.game}
                           </Badge>
-                          <p className="text-sm text-gray-500">{match.tournament}</p>
+                          <p className="text-sm text-slate-300">{match.tournament}</p>
                         </div>
                         {selectedMatch === match.id && (
                           <motion.div
@@ -170,7 +232,7 @@ export default function ParierPage() {
                           }`}
                         >
                           <div className="text-center">
-                            <div className="text-4xl mb-2">{match.team1.logo}</div>
+                            <div className="flex justify-center mb-2">{renderTeamLogo(match.team1.logo, match.team1.name)}</div>
                             <p className="font-bold mb-1">{match.team1.name}</p>
                             <div className="text-2xl font-bold">{match.team1.odds}</div>
                           </div>
@@ -191,7 +253,7 @@ export default function ParierPage() {
                           }`}
                         >
                           <div className="text-center">
-                            <div className="text-4xl mb-2">{match.team2.logo}</div>
+                            <div className="flex justify-center mb-2">{renderTeamLogo(match.team2.logo, match.team2.name)}</div>
                             <p className="font-bold mb-1">{match.team2.name}</p>
                             <div className="text-2xl font-bold">{match.team2.odds}</div>
                           </div>
@@ -199,7 +261,8 @@ export default function ParierPage() {
                       </div>
                     </Card>
                   </motion.div>
-                ))}
+                ))
+                )}
               </div>
             </motion.div>
           </div>
@@ -211,8 +274,8 @@ export default function ParierPage() {
               transition={{ duration: 0.6 }}
               className="sticky top-24"
             >
-              <Card className="p-6 bg-gradient-to-br from-white to-gray-50 border-2 border-copper/20">
-                <h3 className="text-2xl font-bold mb-6 flex items-center gap-2">
+              <Card className="p-6 bg-slate-800/90 border border-slate-700 backdrop-blur-sm">
+                <h3 className="text-2xl font-bold mb-6 flex items-center gap-2 text-white">
                   <Sparkles className="w-6 h-6 text-copper" />
                   Votre Pari
                 </h3>
@@ -225,23 +288,26 @@ export default function ParierPage() {
                       exit={{ opacity: 0, y: -20 }}
                       className="space-y-6"
                     >
-                      <div className="p-4 bg-white rounded-lg border-2 border-copper/30">
-                        <p className="text-sm text-gray-500 mb-2">Match sélectionné</p>
+                      <div className="p-4 bg-slate-800/80 border border-slate-600 rounded-lg">
+                        <p className="text-sm text-slate-300 mb-2">Match sélectionné</p>
                         <div className="flex items-center gap-3 mb-2">
-                          <span className="text-3xl">
-                            {selectedMatchData?.[selectedTeam].logo}
-                          </span>
+                          <div className="flex-shrink-0">
+                            {selectedMatchData && selectedTeam && renderTeamLogo(
+                              selectedMatchData[selectedTeam].logo, 
+                              selectedMatchData[selectedTeam].name
+                            )}
+                          </div>
                           <div>
                             <p className="font-bold text-lg">
                               {selectedMatchData?.[selectedTeam].name}
                             </p>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-slate-300">
                               {selectedMatchData?.tournament}
                             </p>
                           </div>
                         </div>
                         <div className="flex items-center justify-between pt-2 border-t">
-                          <span className="text-sm text-gray-600">Cote</span>
+                          <span className="text-sm text-slate-300">Cote</span>
                           <span className="text-xl font-bold text-copper">
                             {selectedMatchData?.[selectedTeam].odds}
                           </span>
@@ -267,7 +333,8 @@ export default function ParierPage() {
                               variant="outline"
                               size="sm"
                               onClick={() => setBetAmount(amount.toString())}
-                              className="flex-1 hover:bg-copper/10 hover:border-copper"
+                              disabled={amount > balance}
+                              className="flex-1 hover:bg-copper/10 hover:border-copper disabled:opacity-30"
                             >
                               {amount}€
                             </Button>
@@ -282,11 +349,11 @@ export default function ParierPage() {
                           className="p-4 bg-gradient-to-r from-copper/10 to-teal/10 rounded-lg border-2 border-copper/30"
                         >
                           <div className="flex items-center justify-between mb-2">
-                            <span className="text-gray-600">Mise</span>
+                            <span className="text-slate-300">Mise</span>
                             <span className="font-bold">{betAmount}€</span>
                           </div>
                           <div className="flex items-center justify-between mb-2">
-                            <span className="text-gray-600">Cote</span>
+                            <span className="text-slate-300">Cote</span>
                             <span className="font-bold">
                               {selectedMatchData?.[selectedTeam].odds}
                             </span>
@@ -304,19 +371,30 @@ export default function ParierPage() {
 
                       <Button
                         onClick={handlePlaceBet}
-                        disabled={!betAmount || parseFloat(betAmount) <= 0}
+                        disabled={
+                          !betAmount || 
+                          parseFloat(betAmount) <= 0 || 
+                          parseFloat(betAmount) > balance ||
+                          processingBet
+                        }
                         className="w-full bg-gradient-to-r from-copper to-copper-600 hover:from-copper-600 hover:to-copper-700 text-white font-bold py-6 text-lg rounded-lg disabled:opacity-50 disabled:cursor-not-allowed group"
                       >
-                        Confirmer le Pari
+                        {processingBet ? 'Placement en cours...' : 'Confirmer le Pari'}
                         <TrendingUp className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                       </Button>
+
+                      {betAmount && parseFloat(betAmount) > balance && (
+                        <p className="text-red-400 text-sm mt-2 text-center">
+                          Solde insuffisant pour ce pari
+                        </p>
+                      )}
                     </motion.div>
                   ) : (
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="text-center py-12 text-gray-400"
+                      className="text-center py-12 text-slate-400"
                     >
                       <Trophy className="w-16 h-16 mx-auto mb-4 opacity-30" />
                       <p>Sélectionnez un match et une équipe pour commencer</p>
@@ -354,7 +432,7 @@ export default function ParierPage() {
                 </DialogDescription>
               </DialogHeader>
               <div className="mt-6 p-4 bg-copper/10 rounded-lg">
-                <p className="text-sm text-gray-600 mb-1">Gain potentiel</p>
+                <p className="text-sm text-slate-300 mb-1">Gain potentiel</p>
                 <p className="text-3xl font-bold text-copper">{potentialWin}€</p>
               </div>
             </motion.div>
