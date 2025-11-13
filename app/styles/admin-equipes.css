@@ -1,0 +1,301 @@
+/* ==============================================
+   ADMIN EQUIPES PAGE
+   Gestion des équipes e-sport
+   ============================================== */
+
+.admin-equipes-page {
+  min-height: 100vh;
+  padding: 3rem 1rem;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+}
+
+.admin-equipes-container {
+  max-width: 80rem;
+  margin: 0 auto;
+}
+
+/* Header avec animation */
+.admin-equipes-header {
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  animation: slideDown 0.6s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.admin-equipes-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #C79081 0%, #14B8A6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.admin-equipes-title svg {
+  width: 2rem;
+  height: 2rem;
+  color: #C79081;
+}
+
+.admin-equipes-subtitle {
+  font-size: 1.25rem;
+  color: #cbd5e1;
+  margin-top: 0.5rem;
+}
+
+.admin-equipes-create-btn {
+  background: linear-gradient(135deg, #C79081 0%, #a67265 100%);
+  color: white;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.admin-equipes-create-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px -5px rgba(199, 144, 129, 0.5);
+}
+
+.admin-team-logo-container {
+  width: 3.5rem;
+  height: 3.5rem;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.admin-team-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 0.25rem;
+}
+
+/* Grid responsive avec animation */
+.admin-equipes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: 1.5rem;
+  animation: fadeInUp 0.6s ease-out 0.2s backwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Team Card avec effets hover */
+.admin-team-card {
+  background: rgba(30, 41, 59, 0.9);
+  border: 1px solid rgba(71, 85, 105, 0.5);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Barre de couleur en haut */
+.admin-team-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #C79081, #14B8A6);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+
+.admin-team-card:hover::before {
+  transform: scaleX(1);
+}
+
+.admin-team-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(199, 144, 129, 0.5);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(199, 144, 129, 0.2);
+}
+
+.admin-team-card-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.admin-team-logo {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 0.75rem;
+  object-fit: contain;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.5rem;
+  transition: transform 0.3s ease;
+}
+
+.admin-team-card:hover .admin-team-logo {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.admin-team-info h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 0.25rem;
+}
+
+.admin-team-tag {
+  color: #94a3b8;
+  font-size: 0.875rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.admin-team-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.admin-team-detail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #cbd5e1;
+  font-size: 0.875rem;
+}
+
+.admin-team-detail-item svg {
+  width: 1rem;
+  height: 1rem;
+  color: #C79081;
+  flex-shrink: 0;
+}
+
+.admin-team-actions {
+  display: flex;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(71, 85, 105, 0.5);
+}
+
+/* Boutons avec animations */
+.admin-team-btn {
+  flex: 1;
+  padding: 0.625rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.admin-team-btn svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.admin-team-btn--edit {
+  background: linear-gradient(135deg, #14B8A6 0%, #0d9488 100%);
+  color: white;
+}
+
+.admin-team-btn--edit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px -2px rgba(20, 184, 166, 0.5);
+}
+
+.admin-team-btn--delete {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+}
+
+.admin-team-btn--delete:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px -2px rgba(239, 68, 68, 0.5);
+}
+
+/* État de chargement */
+.admin-equipes-loading {
+  min-height: 100vh;
+  padding: 3rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-equipes-spinner {
+  width: 4rem;
+  height: 4rem;
+  border: 3px solid rgba(199, 144, 129, 0.2);
+  border-top-color: #C79081;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .admin-equipes-page {
+    padding: 1.5rem 1rem;
+  }
+  
+  .admin-equipes-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .admin-equipes-title {
+    font-size: 2rem;
+  }
+}
+
+/* Accessibility */
+.admin-team-btn:focus-visible {
+  outline: 3px solid #C79081;
+  outline-offset: 2px;
+}

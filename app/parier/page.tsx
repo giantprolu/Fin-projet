@@ -18,6 +18,7 @@ import { Trophy, TrendingUp, CircleCheck as CheckCircle2, Sparkles, Wallet } fro
 import { useUser } from '@clerk/nextjs';
 import { useUserBalance } from '@/hooks/use-user-balance';
 import Image from 'next/image';
+import '../styles/parier.css';
 
 interface Match {
   id: number;
@@ -120,19 +121,19 @@ export default function ParierPage() {
     : '0.00';
 
   return (
-    <div className="min-h-screen p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="parier-page">
+      <div className="parier-container">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-12"
+          className="parier-header"
         >
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-copper to-sage bg-clip-text text-transparent mb-4">
+          <h1 className="parier-title">
             Placer un Pari
           </h1>
-          <p className="text-slate-300 text-lg">
+          <p className="parier-subtitle">
             Sélectionnez votre match et montant pour gagner gros
           </p>
         </motion.div>
@@ -143,9 +144,9 @@ export default function ParierPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="mb-8"
+            className="parier-wallet"
           >
-            <Card className="bg-slate-800/90 border border-slate-700 backdrop-blur-sm p-4 max-w-sm mx-auto">
+            <Card className="parier-balance">
               <div className="flex items-center gap-3">
                 <Wallet className="w-6 h-6 text-copper" />
                 <div>
@@ -158,8 +159,8 @@ export default function ParierPage() {
         )}
 
         {/* Matches Section */}
-        <div className="grid lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-6">
+        <div className="parier-grid">
+          <div className="parier-matches">
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
@@ -172,7 +173,7 @@ export default function ParierPage() {
 
               <div className="space-y-4">
                 {loading ? (
-                  <div className="flex justify-center items-center py-12">
+                  <div className="parier-loading">
                     <motion.div
                       animate={{ rotate: 360 }}
                       transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
@@ -192,19 +193,19 @@ export default function ParierPage() {
                     transition={{ delay: index * 0.1 }}
                   >
                     <Card
-                      className={`p-6 cursor-pointer transition-all duration-300 ${
+                      className={`parier-match-card ${
                         selectedMatch === match.id
-                          ? 'border-2 border-copper shadow-xl bg-copper-50'
-                          : 'hover:shadow-lg hover:border-copper/30 border-2 border-transparent'
+                          ? 'parier-match-card--selected'
+                          : ''
                       }`}
                       onClick={() => setSelectedMatch(match.id)}
                     >
-                      <div className="flex justify-between items-center mb-4">
+                      <div className="parier-match-header">
                         <div>
-                          <Badge className="bg-teal text-white mb-2">
+                          <Badge className="parier-match-game">
                             {match.game}
                           </Badge>
-                          <p className="text-sm text-slate-300">{match.tournament}</p>
+                          <p className="parier-match-tournament">{match.tournament}</p>
                         </div>
                         {selectedMatch === match.id && (
                           <motion.div
@@ -216,7 +217,7 @@ export default function ParierPage() {
                         )}
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="parier-match-teams">
                         <motion.div
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
@@ -225,16 +226,16 @@ export default function ParierPage() {
                             setSelectedMatch(match.id);
                             setSelectedTeam('team1');
                           }}
-                          className={`p-4 rounded-lg border-2 transition-all ${
+                          className={`parier-team-option ${
                             selectedMatch === match.id && selectedTeam === 'team1'
-                              ? 'border-copper bg-copper text-white'
-                              : 'border-gray-200 bg-gray-50 hover:border-copper/50'
+                              ? 'parier-team-option--selected'
+                              : ''
                           }`}
                         >
                           <div className="text-center">
-                            <div className="flex justify-center mb-2">{renderTeamLogo(match.team1.logo, match.team1.name)}</div>
-                            <p className="font-bold mb-1">{match.team1.name}</p>
-                            <div className="text-2xl font-bold">{match.team1.odds}</div>
+                            <div className="parier-team-logo">{renderTeamLogo(match.team1.logo, match.team1.name)}</div>
+                            <p className="parier-team-name">{match.team1.name}</p>
+                            <div className="parier-team-odds">{match.team1.odds}</div>
                           </div>
                         </motion.div>
 
@@ -246,16 +247,16 @@ export default function ParierPage() {
                             setSelectedMatch(match.id);
                             setSelectedTeam('team2');
                           }}
-                          className={`p-4 rounded-lg border-2 transition-all ${
+                          className={`parier-team-option ${
                             selectedMatch === match.id && selectedTeam === 'team2'
-                              ? 'border-teal bg-teal text-white'
-                              : 'border-gray-200 bg-gray-50 hover:border-teal/50'
+                              ? 'parier-team-option--selected'
+                              : ''
                           }`}
                         >
                           <div className="text-center">
-                            <div className="flex justify-center mb-2">{renderTeamLogo(match.team2.logo, match.team2.name)}</div>
-                            <p className="font-bold mb-1">{match.team2.name}</p>
-                            <div className="text-2xl font-bold">{match.team2.odds}</div>
+                            <div className="parier-team-logo">{renderTeamLogo(match.team2.logo, match.team2.name)}</div>
+                            <p className="parier-team-name">{match.team2.name}</p>
+                            <div className="parier-team-odds">{match.team2.odds}</div>
                           </div>
                         </motion.div>
                       </div>
@@ -272,10 +273,10 @@ export default function ParierPage() {
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
-              className="sticky top-24"
+              className="parier-bet-panel"
             >
-              <Card className="p-6 bg-slate-800/90 border border-slate-700 backdrop-blur-sm">
-                <h3 className="text-2xl font-bold mb-6 flex items-center gap-2 text-white">
+              <Card className="parier-bet-panel--active">
+                <h3 className="parier-bet-title">
                   <Sparkles className="w-6 h-6 text-copper" />
                   Votre Pari
                 </h3>
@@ -314,7 +315,7 @@ export default function ParierPage() {
                         </div>
                       </div>
 
-                      <div>
+                      <div className="parier-bet-form">
                         <Label htmlFor="amount" className="text-lg mb-2 block">
                           Montant du pari (€)
                         </Label>
@@ -324,7 +325,7 @@ export default function ParierPage() {
                           placeholder="50"
                           value={betAmount}
                           onChange={(e) => setBetAmount(e.target.value)}
-                          className="text-xl py-6 border-2 focus:border-copper"
+                          className="parier-bet-input"
                         />
                         <div className="flex gap-2 mt-3">
                           {[10, 25, 50, 100].map((amount) => (
@@ -346,7 +347,7 @@ export default function ParierPage() {
                         <motion.div
                           initial={{ opacity: 0, scale: 0.9 }}
                           animate={{ opacity: 1, scale: 1 }}
-                          className="p-4 bg-gradient-to-r from-copper/10 to-teal/10 rounded-lg border-2 border-copper/30"
+                          className="parier-bet-potential"
                         >
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-slate-300">Mise</span>
@@ -377,7 +378,7 @@ export default function ParierPage() {
                           parseFloat(betAmount) > balance ||
                           processingBet
                         }
-                        className="w-full bg-gradient-to-r from-copper to-copper-600 hover:from-copper-600 hover:to-copper-700 text-white font-bold py-6 text-lg rounded-lg disabled:opacity-50 disabled:cursor-not-allowed group"
+                        className="parier-place-bet-btn"
                       >
                         {processingBet ? 'Placement en cours...' : 'Confirmer le Pari'}
                         <TrendingUp className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -407,7 +408,7 @@ export default function ParierPage() {
         </div>
 
         <Dialog open={showConfirmation} onOpenChange={setShowConfirmation}>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="parier-confirmation">
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -419,7 +420,7 @@ export default function ParierPage() {
                   rotate: [0, 10, -10, 0],
                 }}
                 transition={{ duration: 0.6 }}
-                className="w-20 h-20 bg-gradient-to-br from-copper to-teal rounded-full flex items-center justify-center mx-auto mb-6"
+                className="parier-confirmation-icon"
               >
                 <CheckCircle2 className="w-12 h-12 text-white" />
               </motion.div>

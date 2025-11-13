@@ -1,0 +1,200 @@
+/* ==============================================
+   UNAUTHORIZED PAGE
+   Page d'erreur 403 avec design moderne
+   ============================================== */
+
+.unauthorized-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f9fafb 0%, #ffffff 50%, #fef3e8 100%);
+  padding: 6rem 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Pattern de fond subtil */
+.unauthorized-page::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: radial-gradient(circle at 20px 20px, rgba(199, 144, 129, 0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
+  z-index: 0;
+}
+
+.unauthorized-content {
+  max-width: 32rem;
+  text-align: center;
+  position: relative;
+  z-index: 10;
+  animation: contentFadeIn 0.6s ease-out;
+}
+
+@keyframes contentFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.unauthorized-icon {
+  width: 7rem;
+  height: 7rem;
+  margin: 0 auto 2rem;
+  border-radius: 1.5rem;
+  background: linear-gradient(135deg, #14B8A6 0%, #C79081 100%);
+  box-shadow: 0 20px 25px -5px rgba(20, 184, 166, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: iconBounce 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  position: relative;
+}
+
+/* Effet de lueur */
+.unauthorized-icon::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 1.5rem;
+  background: linear-gradient(135deg, #14B8A6, #C79081);
+  opacity: 0.3;
+  filter: blur(10px);
+  z-index: -1;
+}
+
+@keyframes iconBounce {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) rotate(-5deg);
+  }
+  60% {
+    transform: scale(1.1) rotate(2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.unauthorized-icon svg {
+  width: 3.5rem;
+  height: 3.5rem;
+  color: white;
+}
+
+.unauthorized-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #14B8A6 0%, #C79081 50%, #1f2937 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
+  animation: titleSlide 0.6s ease-out 0.2s backwards;
+}
+
+@keyframes titleSlide {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.unauthorized-description {
+  color: #64748b;
+  font-size: 1.125rem;
+  line-height: 1.75;
+  margin-bottom: 2rem;
+  animation: descriptionFade 0.6s ease-out 0.4s backwards;
+}
+
+@keyframes descriptionFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.unauthorized-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  justify-content: center;
+  animation: actionsFade 0.6s ease-out 0.6s backwards;
+}
+
+@media (min-width: 640px) {
+  .unauthorized-actions {
+    flex-direction: row;
+  }
+}
+
+@keyframes actionsFade {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.unauthorized-code {
+  margin-top: 2.5rem;
+  font-size: 0.75rem;
+  color: #cbd5e1;
+  letter-spacing: 0.05em;
+  animation: codeFade 0.6s ease-out 0.8s backwards;
+}
+
+@keyframes codeFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .unauthorized-page {
+    padding: 1rem;
+  }
+  
+  .unauthorized-icon {
+    width: 6rem;
+    height: 6rem;
+  }
+  
+  .unauthorized-icon svg {
+    width: 3rem;
+    height: 3rem;
+  }
+  
+  .unauthorized-title {
+    font-size: 2rem;
+  }
+  
+  .unauthorized-description {
+    font-size: 1rem;
+  }
+}

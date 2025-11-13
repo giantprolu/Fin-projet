@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/dialog';
 import { Plus, CreditCard as Edit, Trash2, Gamepad2, Clock, TrendingUp, Calendar, MapPin, AlertTriangle, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import '../../styles/admin-matchs.css';
 
 interface Match {
   id: number;
@@ -324,16 +325,12 @@ export default function AdminMatchsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen py-12 px-4">
-        <div className="container mx-auto max-w-7xl">
-          <div className="flex justify-center items-center h-64">
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              className="w-12 h-12 border-4 border-copper border-t-transparent rounded-full"
-            />
-          </div>
-        </div>
+      <div className="admin-matchs-loading">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          className="admin-matchs-spinner"
+        />
       </div>
     );
   }
@@ -420,29 +417,29 @@ export default function AdminMatchsPage() {
   };
 
   return (
-    <div className="min-h-screen p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="admin-matchs-page">
+      <div className="admin-matchs-container">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="mb-8 text-center"
+          className="admin-matchs-header"
         >
-          <h1 className="text-5xl font-bold mb-2">
-            <span className="bg-gradient-to-r from-copper to-teal bg-clip-text text-transparent">
+          <div>
+            <h1 className="admin-matchs-title">
               Gestion des Matchs
-            </span>
-          </h1>
-          <p className="text-xl text-slate-300 mb-6">
-            Créez, modifiez et gérez les matchs esports
-          </p>
+            </h1>
+            <p className="admin-matchs-subtitle">
+              Créez, modifiez et gérez les matchs esports
+            </p>
+          </div>
 
-          <div className="flex gap-4 justify-center">
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1rem' }}>
             <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
               <DialogTrigger asChild>
                 <Button
                   size="lg"
-                  className="bg-gradient-to-r from-copper to-copper-600 hover:from-copper-600 hover:to-copper-700 text-white font-semibold shadow-lg"
+                  className="admin-matchs-create-btn"
                 >
                   <Plus className="mr-2 w-5 h-5" />
                   Créer un Match
@@ -453,7 +450,7 @@ export default function AdminMatchsPage() {
             <Button
               size="lg"
               variant="outline"
-              className="border-red-500/50 text-red-400 hover:bg-red-500/10 hover:border-red-500"
+              className="admin-matchs-problematic-btn"
               onClick={() => {
                 setShowProblematicBets(true);
                 loadProblematicBets();
@@ -645,7 +642,7 @@ export default function AdminMatchsPage() {
           </Dialog>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-6">
+        <div className="admin-matchs-grid">
           <AnimatePresence>
             {matches.map((match, index) => (
               <motion.div
@@ -655,39 +652,36 @@ export default function AdminMatchsPage() {
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ delay: index * 0.05 }}
               >
-                <Card className="p-6 bg-slate-800/90 border border-slate-700 backdrop-blur-sm hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 hover:border-copper/50">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <Gamepad2 className="w-8 h-8 text-copper" />
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge className="bg-teal/10 text-teal">{match.game}</Badge>
-                          {getStatusBadge(match.status)}
-                        </div>
-                        <h3 className="text-xl font-bold text-white">
-                          {match.tournament}
-                        </h3>
-                        <div className="flex items-center gap-2 text-sm text-slate-400 mt-1">
-                          <Clock className="w-4 h-4" />
-                          {match.date} à {match.time}
-                        </div>
+                <Card className="admin-match-card">
+                  <div className="admin-match-header">
+                    <div>
+                      <div className="admin-match-game">{match.game}</div>
+                      <div className="admin-match-tournament">
+                        <Clock className="w-4 h-4" />
+                        {match.tournament} - {match.date} à {match.time}
                       </div>
                     </div>
+                    <div className={`admin-match-status-badge admin-match-status-badge--${match.status}`}>
+                      {match.status === 'live' && '🔴 En Direct'}
+                      {match.status === 'finished' && '✅ Terminé'}
+                      {match.status === 'scheduled' && '🕐 Programmé'}
+                    </div>
+                  </div>
 
-                    <div className="flex gap-2">
-                      <Dialog
-                        open={editingMatch?.id === match.id}
-                        onOpenChange={(open) => !open && setEditingMatch(null)}
-                      >
-                        <DialogTrigger asChild>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleEdit(match)}
-                            className="hover:bg-copper/10 hover:border-copper border-slate-600 text-black"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
+                  <div className="admin-match-actions">
+                    <Dialog
+                      open={editingMatch?.id === match.id}
+                      onOpenChange={(open) => !open && setEditingMatch(null)}
+                    >
+                      <DialogTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleEdit(match)}
+                          className="admin-match-btn"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
                         </DialogTrigger>
                         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-slate-800 border-slate-700">
                           <DialogHeader>
@@ -850,76 +844,41 @@ export default function AdminMatchsPage() {
                           </div>
                         </DialogContent>
                       </Dialog>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="text-black hover:bg-black hover:text-white hover:bg-red-50 hover:border-red-400 hover:text-red-600 border-slate-600"
-                        onClick={() => handleDelete(match.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="admin-match-btn"
+                      onClick={() => handleDelete(match.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
                   </div>
 
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="p-4 bg-slate-700/50 rounded-lg border border-copper/20">
-                        <div className="flex items-center gap-3 mb-2">
-                          {renderTeamLogo(match.team1.logo, match.team1.name)}
-                          <div className="flex-1">
-                            <p className="font-bold text-lg text-white">
-                              {match.team1.name}
-                            </p>
-                            <p className="text-sm text-slate-400">Équipe 1</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between p-2 bg-copper/10 rounded-lg">
-                          <div className="flex items-center gap-1 text-copper">
-                            <TrendingUp className="w-4 h-4" />
-                            <span className="text-sm">Cote</span>
-                          </div>
-                          <span className="text-xl font-bold text-copper">
-                            {match.team1.odds}
-                          </span>
-                        </div>
+                  <div className="admin-match-teams">
+                    <div className="admin-match-team">
+                      <div className="admin-match-team-logo">
+                        {renderTeamLogo(match.team1.logo, match.team1.name)}
                       </div>
-
-                      <div className="p-4 bg-slate-700/50 rounded-lg border border-teal/20">
-                        <div className="flex items-center gap-3 mb-2">
-                          {renderTeamLogo(match.team2.logo, match.team2.name)}
-                          <div className="flex-1">
-                            <p className="font-bold text-lg text-white">
-                              {match.team2.name}
-                            </p>
-                            <p className="text-sm text-slate-400">Équipe 2</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between p-2 bg-teal/10 rounded-lg">
-                          <div className="flex items-center gap-1 text-teal">
-                            <TrendingUp className="w-4 h-4" />
-                            <span className="text-sm">Cote</span>
-                          </div>
-                          <span className="text-xl font-bold text-teal">
-                            {match.team2.odds}
-                          </span>
-                        </div>
+                      <div className="admin-match-team-name">
+                        {match.team1.name}
+                      </div>
+                      <div className="admin-match-odds">
+                        {match.team1.odds}
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between p-3 bg-slate-700/30 rounded-lg">
-                      <div className="flex items-center gap-2 text-slate-300">
-                        <Calendar className="w-4 h-4" />
-                        <span className="text-sm">Date du match</span>
-                      </div>
-                      <span className="font-bold text-white">{match.date} à {match.time}</span>
-                    </div>
+                    <div className="admin-match-vs">VS</div>
 
-                    <div className="flex items-center justify-between p-3 bg-slate-700/30 rounded-lg">
-                      <div className="flex items-center gap-2 text-slate-300">
-                        <MapPin className="w-4 h-4" />
-                        <span className="text-sm">Tournoi</span>
+                    <div className="admin-match-team">
+                      <div className="admin-match-team-logo">
+                        {renderTeamLogo(match.team2.logo, match.team2.name)}
                       </div>
-                      <span className="font-bold text-white">{match.tournament}</span>
+                      <div className="admin-match-team-name">
+                        {match.team2.name}
+                      </div>
+                      <div className="admin-match-odds">
+                        {match.team2.odds}
+                      </div>
                     </div>
                   </div>
                 </Card>

@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Trophy, Users, Shield, Zap, TrendingUp, Award, ArrowRight, Target, Gamepad2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRef } from 'react';
+import './styles/home.css';
 
 const features = [
   {
@@ -71,14 +72,14 @@ export default function Home() {
   const opacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
 
   return (
-    <div className="min-h-screen">
+    <div className="home-page">
       <section
         ref={heroRef}
-        className="relative h-screen flex items-center justify-center overflow-hidden"
+        className="home-hero"
       >
         <motion.div
           style={{ y, opacity }}
-          className="relative z-10 text-center px-4 max-w-5xl mx-auto"
+          className="home-hero-content"
         >
           <motion.div
             initial={{ scale: 0.5, opacity: 0 }}
@@ -95,14 +96,14 @@ export default function Home() {
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-6xl md:text-7xl lg:text-8xl font-bold mb-6 leading-tight"
+            className="home-hero-title"
           >
-            <span className="bg-gradient-to-r from-copper to-sage bg-clip-text text-transparent">
+            <span className="home-hero-gradient-text">
               L&apos;Arène 
             </span>
             <span className="text-copper/50 ml-2">des</span>
             <br />
-            <span className="bg-gradient-to-r from-teal via-copper to-gray-900 bg-clip-text text-transparent">
+            <span className="home-hero-gradient-text">
               Champions
             </span>
           </motion.h1>
@@ -111,7 +112,7 @@ export default function Home() {
             initial={{ y: 50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="text-xl md:text-2xl text-slate-300 mb-12 max-w-3xl mx-auto leading-relaxed"
+            className="home-hero-subtitle"
           >
             Plongez dans l&apos;univers électrisant des paris esports.
             Analyses en temps réel, cotes premium et expérience immersive.
@@ -152,24 +153,24 @@ export default function Home() {
         />
       </section>
 
-      <section className="py-24 px-4 bg-white">
-        <div className="container mx-auto max-w-7xl">
+      <section className="home-features">
+        <div className="home-features-container">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="text-center mb-16"
+            className="home-section-header"
           >
-            <h2 className="text-5xl font-bold text-copper/50 ml-2">
+            <h2 className="home-section-title">
               Pourquoi <span className="text-copper">GrandPari</span> ?
             </h2>
-            <p className="text-xl text-slate-300 max-w-2xl mx-auto">
+            <p className="home-section-subtitle">
               Une expérience de paris esports révolutionnaire
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="home-features-grid">
             {features.map((feature, index) => {
               const Icon = feature.icon;
               return (
@@ -180,17 +181,17 @@ export default function Home() {
                   viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: index * 0.1 }}
                 >
-                  <Card className="p-8 h-full bg-slate-800/90 border border-slate-700 backdrop-blur-sm hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 hover:border-copper/50">
+                  <Card className="home-feature-card">
                     <motion.div
                       whileHover={{ scale: 1.1, rotate: 5 }}
-                      className="w-16 h-16 bg-gradient-to-br from-copper to-copper-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg"
+                      className="home-feature-icon"
                     >
                       <Icon className="w-8 h-8 text-white" />
                     </motion.div>
-                    <h3 className="text-2xl font-bold mb-4 text-white">
+                    <h3 className="home-feature-title">
                       {feature.title}
                     </h3>
-                    <p className="text-slate-300 leading-relaxed">
+                    <p className="home-feature-description">
                       {feature.description}
                     </p>
                   </Card>
@@ -201,52 +202,10 @@ export default function Home() {
         </div>
       </section>
 
-            <section className="py-24 px-4">
-        <div className="max-w-6xl mx-auto text-center">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-4xl font-bold text-white mb-6"
-          >
-            Pourquoi choisir <span className="text-copper">GrandPari</span> ?
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-xl text-slate-300 mb-16 max-w-3xl mx-auto"
-          >
-            Découvrez une expérience de paris esports révolutionnaire avec des fonctionnalités innovantes
-          </motion.p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-              >
-                <Card className="p-8 h-full bg-slate-800/90 border border-slate-700 backdrop-blur-sm hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 hover:border-copper/50">
-                  <div
-                    className="w-16 h-16 bg-gradient-to-br from-copper to-copper-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg"
-                  >
-                    <feature.icon className="w-8 h-8 text-white" />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-4 text-white">{feature.title}</h3>
-                  <p className="text-slate-300 leading-relaxed">{feature.description}</p>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="py-24 px-4 bg-gradient-to-br from-slate-800/50 to-slate-700/50 backdrop-blur-sm text-white relative overflow-hidden">
+      <section className="home-steps">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yIDItNCAyLTRzMiAyIDIgNHYyYzAgMi0yIDQtMiA0cy0yLTItMi00di0yem0wLTMwYzAtMiAyLTQgMi00czIgMiAyIDR2MmMwIDItMiA0LTIgNHMtMi0yLTItNHYtMnpNMCA0YzAtMiAyLTQgMi00czIgMiAyIDR2MmMwIDItMiA0LTIgNHMtMi0yLTItNHYtMnoiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-20" />
 
-        <div className="container mx-auto max-w-7xl relative z-10">
+        <div className="home-steps-container">
           <motion.div
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -305,8 +264,8 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="py-20 px-4 bg-white">
-        <div className="container mx-auto max-w-7xl">
+      <section className="home-partners">
+        <div className="home-partners-container">
           <motion.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
@@ -314,7 +273,7 @@ export default function Home() {
             transition={{ duration: 0.6 }}
             className="text-center mb-12"
           >
-            <h2 className="text-4xl font-bold mb-4 text-white">
+            <h2 className="home-partners-title">
               Nos <span className="text-copper">Partenaires</span>
             </h2>
           </motion.div>
@@ -324,13 +283,13 @@ export default function Home() {
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="flex flex-wrap justify-center items-center gap-12"
+            className="home-partners-grid"
           >
             {partners.map((partner, index) => (
               <motion.div
                 key={index}
                 whileHover={{ scale: 1.1, y: -5 }}
-                className="text-2xl font-bold text-gray-400 hover:text-copper transition-colors"
+                className="home-partner-item"
               >
                 {partner}
               </motion.div>
@@ -339,10 +298,10 @@ export default function Home() {
         </div>
       </section>
 
-      <footer className="bg-gray-900 text-white py-12 px-4">
-        <div className="container mx-auto max-w-7xl">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
-            <div>
+      <footer className="home-footer">
+        <div className="home-footer-container">
+          <div className="home-footer-grid">
+            <div className="home-footer-section">
               <div className="flex items-center space-x-2 mb-4">
                 <Gamepad2 className="w-8 h-8 text-copper" />
                 <span className="text-2xl font-bold">GrandPari</span>
@@ -352,27 +311,27 @@ export default function Home() {
               </p>
             </div>
 
-            <div>
+            <div className="home-footer-section">
               <h4 className="font-bold mb-4">Liens Rapides</h4>
-              <ul className="space-y-2 text-gray-400">
+              <ul className="home-footer-links">
                 <li><Link href="/matchs" className="hover:text-copper transition-colors">Matchs</Link></li>
                 <li><Link href="/parier" className="hover:text-copper transition-colors">Parier</Link></li>
                 <li><Link href="/resultats" className="hover:text-copper transition-colors">Résultats</Link></li>
               </ul>
             </div>
 
-            <div>
+            <div className="home-footer-section">
               <h4 className="font-bold mb-4">Support</h4>
-              <ul className="space-y-2 text-gray-400">
+              <ul className="home-footer-links">
                 <li><a href="#" className="hover:text-copper transition-colors">FAQ</a></li>
                 <li><a href="#" className="hover:text-copper transition-colors">Contact</a></li>
                 <li><a href="#" className="hover:text-copper transition-colors">Aide</a></li>
               </ul>
             </div>
 
-            <div>
+            <div className="home-footer-section">
               <h4 className="font-bold mb-4">Légal</h4>
-              <ul className="space-y-2 text-gray-400">
+              <ul className="home-footer-links">
                 <li><a href="#" className="hover:text-copper transition-colors">Conditions</a></li>
                 <li><a href="#" className="hover:text-copper transition-colors">Confidentialité</a></li>
                 <li><a href="#" className="hover:text-copper transition-colors">Responsable</a></li>
@@ -380,7 +339,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
+          <div className="home-footer-bottom">
             <p>© 2025 GrandPari. Tous droits réservés.</p>
           </div>
         </div>

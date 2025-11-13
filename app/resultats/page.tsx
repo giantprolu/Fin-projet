@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Coins, TrendingUp, Target, Trophy } from 'lucide-react';
 import { useUserBalance } from '@/hooks/use-user-balance';
+import '../styles/resultats.css';
 
 interface UserStats {
   user?: { balance: number };
@@ -164,7 +165,7 @@ export default function ResultatsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen p-6 flex items-center justify-center">
+      <div className="resultats-loading">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-copper mx-auto"></div>
           <p className="text-white mt-4">Chargement de vos statistiques...</p>
@@ -175,7 +176,7 @@ export default function ResultatsPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen p-6 flex items-center justify-center">
+      <div className="resultats-loading">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-white mb-4">Connexion requise</h1>
           <p className="text-slate-300">Vous devez être connecté pour voir vos résultats.</p>
@@ -185,19 +186,19 @@ export default function ResultatsPage() {
   }
 
   return (
-    <div className="min-h-screen p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="resultats-page">
+      <div className="resultats-container">
         {/* Header */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-12"
+          className="resultats-header"
         >
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-copper to-sage bg-clip-text text-transparent mb-4">
+          <h1 className="resultats-title">
             Vos Résultats
           </h1>
-          <p className="text-slate-300 text-lg">
+          <p className="resultats-subtitle">
             Suivez vos performances et gérez votre portefeuille
           </p>
         </motion.div>
@@ -207,63 +208,63 @@ export default function ResultatsPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"
+          className="resultats-stats-grid"
         >
-          <Card className="bg-slate-800/90 border border-slate-700 backdrop-blur-sm">
+          <Card className="resultats-stat-card resultats-stat-card--copper">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-slate-300">Portefeuille</CardTitle>
-              <Coins className="h-4 w-4 text-copper" />
+              <Coins className="resultats-stat-icon" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
+              <div className="resultats-stat-value">
                 {userStats?.balance?.toFixed(2) || '100.00'}€
               </div>
-              <p className="text-xs text-slate-400">
+              <p className="resultats-stat-label">
                 Solde actuel
               </p>
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-800/90 border border-slate-700 backdrop-blur-sm">
+          <Card className="resultats-stat-card resultats-stat-card--teal">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-slate-300">Paris totaux</CardTitle>
-              <Target className="h-4 w-4 text-sage" />
+              <Target className="resultats-stat-icon" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
+              <div className="resultats-stat-value">
                 {userStats?.totalBets || 0}
               </div>
-              <p className="text-xs text-slate-400">
+              <p className="resultats-stat-label">
                 Paris placés
               </p>
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-800/90 border border-slate-700 backdrop-blur-sm">
+          <Card className="resultats-stat-card resultats-stat-card--amber">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-slate-300">Taux de réussite</CardTitle>
-              <Trophy className="h-4 w-4 text-yellow-500" />
+              <Trophy className="resultats-stat-icon" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-white">
+              <div className="resultats-stat-value">
                 {userStats?.winRate?.toFixed(1) || '0.0'}%
               </div>
-              <p className="text-xs text-slate-400">
+              <p className="resultats-stat-label">
                 Paris gagnés
               </p>
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-800/90 border border-slate-700 backdrop-blur-sm">
+          <Card className="resultats-stat-card resultats-stat-card--purple">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-slate-300">Profit/Perte</CardTitle>
-              <TrendingUp className="h-4 w-4 text-green-500" />
+              <TrendingUp className="resultats-stat-icon" />
             </CardHeader>
             <CardContent>
-              <div className={`text-2xl font-bold ${(userStats?.profit || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+              <div className={`resultats-stat-value ${(userStats?.profit || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                 {(userStats?.profit || 0) >= 0 ? '+' : ''}{userStats?.profit?.toFixed(2) || '0.00'}€
               </div>
-              <p className="text-xs text-slate-400">
+              <p className="resultats-stat-label">
                 Total des gains/pertes
               </p>
             </CardContent>
@@ -275,11 +276,11 @@ export default function ResultatsPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
-          className="mt-8"
+          className="resultats-bets-section"
         >
-          <Card className="bg-slate-800/90 border border-slate-700 backdrop-blur-sm">
+          <Card className="resultats-stat-card">
             <CardHeader>
-              <CardTitle className="text-xl text-white">Mes Paris Récents</CardTitle>
+              <CardTitle className="resultats-bets-title">Mes Paris Récents</CardTitle>
             </CardHeader>
             <CardContent>
               {userBets.length > 0 ? (
@@ -310,10 +311,10 @@ export default function ResultatsPage() {
                     }
 
                     return (
-                      <div key={bet.id} className="flex justify-between items-center p-3 bg-slate-900/50 rounded-lg">
-                        <div>
+                      <div key={bet.id} className="resultats-table-row">
+                        <div className="resultats-match-cell">
                           <p className="text-white font-medium">Pari #{bet.id}</p>
-                          <p className="text-slate-400 text-sm">
+                          <p className="resultats-bet-team">
                             {bet.bet_team_name || 'Équipe inconnue'} - {bet.game || 'Match'}
                           </p>
                           <p className="text-xs text-slate-500">
@@ -321,12 +322,12 @@ export default function ResultatsPage() {
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-white font-bold">{bet.amount}€</p>
+                          <p className="resultats-bet-amount">{bet.amount}€</p>
                           <Badge 
                             className={
-                              betStatus === 'won' ? 'bg-green-600' :
-                              betStatus === 'lost' ? 'bg-red-600' :
-                              'bg-yellow-600'
+                              betStatus === 'won' ? 'resultats-bet-status-badge resultats-bet-status-badge--won' :
+                              betStatus === 'lost' ? 'resultats-bet-status-badge resultats-bet-status-badge--lost' :
+                              'resultats-bet-status-badge resultats-bet-status-badge--pending'
                             }
                           >
                             {betStatusLabel}
@@ -337,7 +338,7 @@ export default function ResultatsPage() {
                   })}
                 </div>
               ) : (
-                <div className="text-center py-8">
+                <div className="resultats-empty-state">
                   <Target className="h-12 w-12 text-slate-600 mx-auto mb-4" />
                   <p className="text-slate-400">Aucun pari placé pour le moment</p>
                   <p className="text-slate-500 text-sm">Commencez à parier pour voir vos statistiques !</p>

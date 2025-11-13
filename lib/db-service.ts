@@ -716,15 +716,15 @@ export class DatabaseService {
         let newStatus = match.status;
         
         if (matchDate < currentDate) {
-          // Match dans le passé -> finished
-          newStatus = 'finished';
+          // Match dans le passé -> completed
+          newStatus = 'completed';
         } else if (matchDate === currentDate) {
           // Match aujourd'hui, vérifier l'heure
           const minutesDifference = currentTotalMinutes - matchTotalMinutes;
           
           if (minutesDifference >= 60) {
-            // Plus d'1h après le début -> finished
-            newStatus = 'finished';
+            // Plus d'1h après le début -> completed
+            newStatus = 'completed';
           } else if (minutesDifference >= 0) {
             // Entre 0 et 60 minutes après le début -> live
             newStatus = 'live';

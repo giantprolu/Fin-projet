@@ -8,6 +8,7 @@ import { Clock, TrendingUp, Users, Flame, Trophy } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
+import '../styles/matchs.css';
 
 interface MatchDisplayData {
   id: string;
@@ -126,7 +127,7 @@ export default function MatchsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen p-6 flex items-center justify-center">
+      <div className="matchs-loading">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-copper mx-auto"></div>
           <p className="text-white mt-4">Chargement des matchs...</p>
@@ -136,19 +137,19 @@ export default function MatchsPage() {
   }
 
   return (
-    <div className="min-h-screen p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="matchs-page">
+      <div className="matchs-container">
         {/* Header */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-12"
+          className="matchs-header"
         >
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-copper to-sage bg-clip-text text-transparent mb-4">
+          <h1 className="matchs-title">
             Matchs E-Sport
           </h1>
-          <p className="text-slate-300 text-lg">
+          <p className="matchs-subtitle">
             Découvrez et pariez sur les meilleurs matchs d&apos;esport
           </p>
         </motion.div>
@@ -158,7 +159,7 @@ export default function MatchsPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="flex gap-3 mb-8 flex-wrap"
+          className="matchs-filters"
         >
           {filters.map((filter, index) => (
             <motion.div
@@ -168,10 +169,8 @@ export default function MatchsPage() {
             >
               <Badge
                 variant={selectedFilter === filter ? 'default' : 'outline'}
-                className={`px-4 py-2 text-white cursor-pointer ${
-                  selectedFilter === filter
-                    ? 'bg-copper text-white hover:bg-copper-600'
-                    : 'hover:bg-copper/30'
+                className={`matchs-filter-btn ${
+                  selectedFilter === filter ? 'matchs-filter-btn--active' : ''
                 }`}
                 onClick={() => setSelectedFilter(filter)}
               >
@@ -185,7 +184,7 @@ export default function MatchsPage() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="text-center py-12"
+            className="matchs-empty-state"
           >
             <Trophy className="w-16 h-16 text-slate-400 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-slate-300 mb-2">
@@ -196,7 +195,7 @@ export default function MatchsPage() {
             </p>
           </motion.div>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="matchs-grid">
             {filteredMatches.map((match, index) => (
               <motion.div
                 key={match.id}
@@ -204,26 +203,26 @@ export default function MatchsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
               >
-                <Card className="overflow-hidden bg-slate-800/90 border border-slate-700 backdrop-blur-sm hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 hover:border-copper/50">
+                <Card className={`match-card ${match.live ? 'match-card--live' : ''}`}>
                   <div className="p-6">
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
+                    <div className="match-card-header">
+                      <div className="match-game-tournament">
                         <Badge
                           variant="secondary"
-                          className="bg-teal/10 text-teal mb-2"
+                          className="match-game"
                         >
                           {match.game}
                         </Badge>
-                        <p className="text-sm text-slate-300">{match.tournament}</p>
+                        <p className="match-tournament">{match.tournament}</p>
                         <p className="text-xs text-slate-400">{match.format}</p>
                       </div>
-                      <div className="flex gap-2 flex-col">
+                      <div className="match-badges">
                         {match.live && (
                           <motion.div
                             animate={{ scale: [1, 1.2, 1] }}
                             transition={{ repeat: Infinity, duration: 2 }}
                           >
-                            <Badge className="bg-red-500 text-white">
+                            <Badge className="match-badge--live">
                               <span className="w-2 h-2 bg-white rounded-full mr-1 inline-block animate-pulse" />
                               Live
                             </Badge>
@@ -235,7 +234,7 @@ export default function MatchsPage() {
                           </Badge>
                         )}
                         {match.popular && (
-                          <Badge variant="outline" className="border-copper text-copper">
+                          <Badge variant="outline" className="match-badge--popular">
                             <Flame className="w-3 h-3 mr-1" />
                             Populaire
                           </Badge>
@@ -243,66 +242,68 @@ export default function MatchsPage() {
                       </div>
                     </div>
 
-                    <div className="space-y-4 mb-6">
+                    <div className="match-teams">
                       <motion.div
                         whileHover={{ x: 5 }}
-                        className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-slate-800/50 to-transparent hover:from-copper/20 transition-colors"
+                        className="match-team"
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 relative">
+                        <div className="match-team-info">
+                          <div className="match-team-logo-wrapper">
                             <Image
                               src={match.team1.logo || '/assets/Team_Vitality_Logo_2018.png'}
                               alt={`Logo ${match.team1.name}`}
-                              fill
-                              className="object-contain"
+                              width={48}
+                              height={48}
+                              className="match-team-logo"
                             />
                           </div>
                           <div>
-                            <p className="font-bold text-white">{match.team1.name}</p>
-                            <p className="text-xs text-slate-400">{match.team1.tag}</p>
+                            <p className="match-team-name">{match.team1.name}</p>
+                            <p className="match-team-tag">{match.team1.tag}</p>
                           </div>
                         </div>
                         <motion.div
                           whileHover={{ scale: 1.1 }}
-                          className="bg-copper text-white px-4 py-2 rounded-lg font-bold"
+                          className="match-team-odds"
                         >
                           {match.team1.odds?.toFixed(2)}
                         </motion.div>
                       </motion.div>
 
-                      <div className="text-center text-slate-300 font-semibold">VS</div>
+                      <div className="match-vs">VS</div>
 
                       <motion.div
                         whileHover={{ x: 5 }}
-                        className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-slate-800/50 to-transparent hover:from-teal/20 transition-colors"
+                        className="match-team"
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 relative">
+                        <div className="match-team-info">
+                          <div className="match-team-logo-wrapper">
                             <Image
                               src={match.team2.logo || '/assets/Team_Vitality_Logo_2018.png'}
                               alt={`Logo ${match.team2.name}`}
-                              fill
-                              className="object-contain"
+                              width={48}
+                              height={48}
+                              className="match-team-logo"
                             />
                           </div>
                           <div>
-                            <p className="font-bold text-white">{match.team2.name}</p>
-                            <p className="text-xs text-slate-400">{match.team2.tag}</p>
+                            <p className="match-team-name">{match.team2.name}</p>
+                            <p className="match-team-tag">{match.team2.tag}</p>
                           </div>
                         </div>
                         <motion.div
                           whileHover={{ scale: 1.1 }}
-                          className="bg-teal text-white px-4 py-2 rounded-lg font-bold"
+                          className="match-team-odds"
                         >
                           {match.team2.odds?.toFixed(2)}
                         </motion.div>
                       </motion.div>
                     </div>
 
-                    <div className="flex items-center justify-between mb-4 text-sm text-slate-300">
+                    <div className="match-footer">
                       <div className="flex items-center gap-2">
                         <Clock className="w-4 h-4" />
-                        {match.time}
+                        <span className="match-time-badge">{match.time}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Users className="w-4 h-4" />
@@ -312,7 +313,7 @@ export default function MatchsPage() {
 
                     <Link href={`/parier?match=${match.id}`}>
                       <Button 
-                        className="w-full bg-gradient-to-r from-copper to-copper-600 hover:from-copper-600 hover:to-copper-700 text-white font-semibold py-6 rounded-lg group"
+                        className="match-bet-btn"
                         disabled={match.status === 'completed'}
                       >
                         {match.status === 'completed' ? 'Match Terminé' : 'Parier Maintenant'}

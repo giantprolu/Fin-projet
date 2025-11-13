@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/dialog';
 import { Plus, CreditCard as Edit, Trash2, Users, Trophy, Shield, Flag, Calendar, DollarSign } from 'lucide-react';
 import { type Team } from '@/lib/database';
+import '../../styles/admin-equipes.css';
 
 export default function AdminEquipesPage() {
   const [teams, setTeams] = useState<Team[]>([]);
@@ -145,16 +146,12 @@ export default function AdminEquipesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen py-12 px-4">
-        <div className="container mx-auto max-w-7xl">
-          <div className="flex justify-center items-center h-64">
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              className="w-12 h-12 border-4 border-copper border-t-transparent rounded-full"
-            />
-          </div>
-        </div>
+      <div className="admin-equipes-loading">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          className="admin-equipes-spinner"
+        />
       </div>
     );
   }
@@ -243,19 +240,19 @@ export default function AdminEquipesPage() {
   };
 
   return (
-    <div className="min-h-screen py-12 px-4">
-      <div className="container mx-auto max-w-7xl">
+    <div className="admin-equipes-page">
+      <div className="admin-equipes-container">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="mb-8 flex items-center justify-between"
+          className="admin-equipes-header"
         >
           <div>
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-copper to-sage bg-clip-text text-transparent mb-2">
+            <h1 className="admin-equipes-title">
               Gestion des Équipes
             </h1>
-            <p className="text-xl text-slate-300">
+            <p className="admin-equipes-subtitle">
               Créez, modifiez et gérez les équipes esports
             </p>
           </div>
@@ -264,7 +261,7 @@ export default function AdminEquipesPage() {
             <DialogTrigger asChild>
               <Button
                 size="lg"
-                className="bg-gradient-to-r from-copper to-copper-600 hover:from-copper-600 hover:to-copper-700 text-white font-semibold"
+                className="admin-equipes-create-btn"
               >
                 <Plus className="mr-2 w-5 h-5" />
                 Créer une Équipe
@@ -372,7 +369,7 @@ export default function AdminEquipesPage() {
           </Dialog>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="admin-equipes-grid">
           <AnimatePresence>
             {teams.map((team, index) => (
               <motion.div
@@ -382,39 +379,55 @@ export default function AdminEquipesPage() {
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ delay: index * 0.05 }}
               >
-                <Card className="p-6 bg-slate-800/90 border border-slate-700 backdrop-blur-sm hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 hover:border-copper/50">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-14 h-14 relative">
-                        <Image 
-                          src={getTeamLogo(team.tag, team.logo_url)} 
-                          alt={team.name}
-                          width={56}
-                          height={56}
-                          className="object-contain rounded-lg"
-                          style={{ width: 'auto', height: 'auto' }}
-                        />
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-white">{team.name}</h3>
-                        <Badge className="bg-teal/10 text-teal mt-1">{team.tag}</Badge>
-                        <p className="text-sm text-slate-300">{team.country}</p>
-                      </div>
+                <Card className="admin-team-card">
+                  <div className="admin-team-card-header">
+                    <div className="admin-team-logo-container">
+                      <Image 
+                        src={getTeamLogo(team.tag, team.logo_url)} 
+                        alt={team.name}
+                        width={56}
+                        height={56}
+                        className="admin-team-logo"
+                        style={{ width: 'auto', height: 'auto' }}
+                      />
                     </div>
-                    <div className="flex gap-2">
+                    <div className="admin-team-info">
+                      <h3 className="admin-team-name">{team.name}</h3>
+                      <Badge className="admin-team-tag">{team.tag}</Badge>
+                      <p className="admin-team-tag">{team.country}</p>
+                    </div>
+                  </div>
+
+                  <div className="admin-team-details">
+                    <div className="admin-team-detail-item">
+                      <Calendar className="w-4 h-4" />
+                      <span>Fondée en {team.founded_year || 'N/A'}</span>
+                    </div>
+
+                    <div className="admin-team-detail-item">
+                      <Flag className="w-4 h-4" />
+                      <span>Pays: {team.country}</span>
+                    </div>
+
+                    <div className="admin-team-detail-item">
+                      <DollarSign className="w-4 h-4" />
+                      <span>Gains totaux: {formatCurrency(team.total_earnings)}</span>
+                    </div>
+                  </div>
+
+                  <div className="admin-team-actions">
                       <Dialog
                         open={editingTeam?.id === team.id}
                         onOpenChange={(open) => !open && setEditingTeam(null)}
                       >
                         <DialogTrigger asChild>
-                          <Button
-                            size="sm"
-                            variant="outline"
+                          <button
                             onClick={() => handleEdit(team)}
-                            className="hover:bg-copper/10 hover:border-copper"
+                            className="admin-team-btn admin-team-btn--edit"
                           >
                             <Edit className="w-4 h-4" />
-                          </Button>
+                            Éditer
+                          </button>
                         </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>
@@ -525,42 +538,14 @@ export default function AdminEquipesPage() {
                           </div>
                         </DialogContent>
                       </Dialog>
-                      <Button
-                        size="sm"
-                        variant="outline"
+                      <button
                         onClick={() => handleDelete(team.id)}
-                        className="hover:bg-red-50 hover:border-red-400 hover:text-red-600"
+                        className="admin-team-btn admin-team-btn--delete"
                       >
                         <Trash2 className="w-4 h-4" />
-                      </Button>
+                        Supprimer
+                      </button>
                     </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <Calendar className="w-4 h-4" />
-                        <span className="text-sm">Fondée en</span>
-                      </div>
-                      <span className="font-bold text-black">{team.founded_year || 'N/A'}</span>
-                    </div>
-
-                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <Flag className="w-4 h-4" />
-                        <span className="text-sm">Pays</span>
-                      </div>
-                      <span className="font-bold text-black">{team.country}</span>
-                    </div>
-
-                    <div className="flex items-center justify-between p-3 bg-gradient-to-r from-copper/10 to-teal/10 rounded-lg">
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <DollarSign className="w-4 h-4" />
-                        <span className="text-sm">Gains totaux</span>
-                      </div>
-                      <span className="font-bold text-copper">{formatCurrency(team.total_earnings)}</span>
-                    </div>
-                  </div>
                 </Card>
               </motion.div>
             ))}
