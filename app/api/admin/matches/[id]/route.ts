@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { DatabaseService } from '@/lib/db-service';
+import { getDbService } from '@/lib/db-service';
 
-const db = new DatabaseService();
+export const dynamic = 'force-dynamic';
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const db = getDbService();
     const body = await request.json();
     const { game, tournament, team1, team2, team1Odds, team2Odds, date, time, status } = body;
     const matchId = parseInt(params.id);
@@ -55,6 +56,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    const db = getDbService();
     const matchId = parseInt(params.id);
     const success = db.deleteSimpleMatch(matchId);
 

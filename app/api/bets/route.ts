@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
-import { dbService } from '@/lib/db-service';
+import { getDbService } from '@/lib/db-service';
+
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
+    const dbService = getDbService();
     const body = await request.json();
     const { clerk_id, match_id, team_id, amount, odds } = body;
     
@@ -83,6 +86,7 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   try {
+    const dbService = getDbService();
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('user_id');
     

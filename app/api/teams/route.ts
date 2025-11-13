@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { dbService } from '@/lib/db-service';
+import { getDbService } from '@/lib/db-service';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
+    const dbService = getDbService();
     const teams = dbService.getTeams();
     return NextResponse.json(teams);
   } catch (error) {
@@ -16,7 +19,8 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('Début de la création d\'équipe');
+    const dbService = getDbService();
+    console.log('Début de la création d\'\u00e9quipe');
     const body = await request.json();
     console.log('Body reçu:', body);
     

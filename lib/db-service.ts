@@ -1355,5 +1355,15 @@ export class DatabaseService {
   }
 }
 
-// Instance singleton du service
-export const dbService = new DatabaseService();
+// Instance singleton du service (lazy initialization)
+let dbServiceInstance: DatabaseService | null = null;
+
+export function getDbService(): DatabaseService {
+  if (!dbServiceInstance) {
+    dbServiceInstance = new DatabaseService();
+  }
+  return dbServiceInstance;
+}
+
+// Pour compatibilité, mais à éviter dans les nouvelles routes
+export const dbService = typeof window === 'undefined' ? getDbService() : null as any;

@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server';
-import { dbService } from '@/lib/db-service';
+import { getDbService } from '@/lib/db-service';
 import { auth } from '@clerk/nextjs/server';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
+    const dbService = getDbService();
     const { userId } = await auth();
     
     if (!userId) {

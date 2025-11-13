@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { DatabaseService } from '@/lib/db-service';
+import { getDbService } from '@/lib/db-service';
 
-const db = new DatabaseService();
+export const dynamic = 'force-dynamic';
 
 // GET - Récupérer les paris problématiques
 export async function GET() {
   try {
+    const db = getDbService();
     const problematicBets = db.getProblematicBets();
 
     return NextResponse.json({ 
@@ -24,6 +25,7 @@ export async function GET() {
 // POST - Actions sur les paris (annuler, supprimer, nettoyer)
 export async function POST(request: NextRequest) {
   try {
+    const db = getDbService();
     const body = await request.json();
     const { action, betId, reason } = body;
 

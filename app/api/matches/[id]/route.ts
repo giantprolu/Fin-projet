@@ -1,11 +1,14 @@
 import { NextResponse } from 'next/server';
-import { dbService } from '@/lib/db-service';
+import { getDbService } from '@/lib/db-service';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
+    const dbService = getDbService();
     const match = dbService.getMatchById(params.id);
     
     if (!match) {

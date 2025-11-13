@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { dbService } from '@/lib/db-service';
+import { getDbService } from '@/lib/db-service';
+
+export const dynamic = 'force-dynamic';
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const dbService = getDbService();
     const { id } = params;
     const body = await request.json();
     const { name, tag, country, logo_url, founded_year, total_earnings } = body;
@@ -46,6 +49,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    const dbService = getDbService();
     const { id } = params;
 
     const success = dbService.deleteTeam(id);

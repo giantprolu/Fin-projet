@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { DatabaseService } from '@/lib/db-service';
 
-const db = new DatabaseService();
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
+    const db = new DatabaseService();
     const matches = db.getSimpleMatches();
     return NextResponse.json(matches);
   } catch (error) {

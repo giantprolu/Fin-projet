@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { DatabaseService } from '@/lib/db-service';
+import { getDbService } from '@/lib/db-service';
 
-const db = new DatabaseService();
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
+    const db = getDbService();
     const matches = db.getSimpleMatches();
     return NextResponse.json({ matches });
   } catch (error) {
@@ -18,6 +19,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const db = getDbService();
     const body = await request.json();
     const { game, tournament, team1, team2, team1Odds, team2Odds, date, time, status } = body;
 

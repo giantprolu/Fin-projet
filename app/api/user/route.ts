@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
-import { dbService } from '@/lib/db-service';
+import { getDbService } from '@/lib/db-service';
 import { auth } from '@clerk/nextjs/server';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
@@ -13,6 +15,7 @@ export async function GET() {
       );
     }
 
+    const dbService = getDbService();
     // Obtenir ou créer l'utilisateur
     let user = dbService.getUserByClerkId(userId);
     
@@ -34,6 +37,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const dbService = getDbService();
     const { userId } = await auth();
     
     if (!userId) {

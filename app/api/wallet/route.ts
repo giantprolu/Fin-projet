@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
-import { dbService } from '@/lib/db-service';
+import { getDbService } from '@/lib/db-service';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
+    const dbService = getDbService();
     const { searchParams } = new URL(request.url);
     const clerkId = searchParams.get('clerk_id');
     
@@ -38,6 +41,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const dbService = getDbService();
     const body = await request.json();
     const { clerk_id, type, amount, description, reference_id } = body;
     
