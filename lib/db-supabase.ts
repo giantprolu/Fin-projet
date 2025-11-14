@@ -307,10 +307,6 @@ export class SupabaseService {
   async deleteSimpleMatch(matchId: number): Promise<boolean> {
     return this.deleteMatch(matchId);
   }
-    }
-    
-    return true;
-  }
 
   // ==================== UTILISATEURS ====================
   
