@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDbService } from '@/lib/db-service';
+import { getSupabaseService } from '@/lib/db-supabase';
 
 export const dynamic = 'force-dynamic';
 
 // GET - Récupérer les paris problématiques
 export async function GET() {
   try {
-    const db = getDbService();
-    const problematicBets = db.getProblematicBets();
+    const db = getSupabaseService();
+    const problematicBets = await db.getProblematicBets();
 
     return NextResponse.json({ 
       problematicBets,
@@ -25,7 +25,7 @@ export async function GET() {
 // POST - Actions sur les paris (annuler, supprimer, nettoyer)
 export async function POST(request: NextRequest) {
   try {
-    const db = getDbService();
+    const db = getSupabaseService();
     const body = await request.json();
     const { action, betId, reason } = body;
 
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
           );
         }
         
-        const success = db.cancelBet(betId, reason || 'Annulé par l\'administrateur');
+        const success = await db.cancelBet(betId, reason || 'Annulé par l\'administrateur');
         return NextResponse.json({ 
           success, 
           message: success ? 'Pari annulé avec succès' : 'Erreur lors de l\'annulation'
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
           );
         }
         
-        const success = db.deleteBet(betId, reason || 'Supprimé par l\'administrateur');
+        const success = await db.deleteBet(betId, reason || 'Supprimé par l\'administrateur');
         return NextResponse.json({ 
           success, 
           message: success ? 'Pari supprimé avec succès' : 'Erreur lors de la suppression'
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
       }
 
       case 'cleanup': {
-        const result = db.cleanupProblematicBets();
+        const result = await db.cleanupProblematicBets();
         return NextResponse.json({ 
           success: true,
           message: `Nettoyage terminé: ${result.cancelled} paris annulés, ${result.deleted} paris supprimés`,

@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import { getDbService } from '@/lib/db-service';
+import { getSupabaseService } from '@/lib/db-supabase';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST() {
   try {
-    const db = getDbService();
-    db.updateMatchStatuses();
+    const db = getSupabaseService();
+    await db.updateMatchStatuses();
     return NextResponse.json({ 
       message: 'Statuts des matchs mis à jour avec succès' 
     });

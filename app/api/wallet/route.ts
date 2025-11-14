@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
-import { getDbService } from '@/lib/db-service';
+import { getSupabaseService } from '@/lib/db-supabase';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
-    const dbService = getDbService();
+    const dbService = getSupabaseService();
     const { searchParams } = new URL(request.url);
     const clerkId = searchParams.get('clerk_id');
     
@@ -17,7 +17,7 @@ export async function GET(request: Request) {
     }
     
     // Récupérer l'utilisateur
-    const user = dbService.getUserByClerkId(clerkId);
+    const user = await dbService.getUserByClerkId(clerkId);
     if (!user) {
       return NextResponse.json(
         { error: 'Utilisateur non trouvé' },
@@ -26,7 +26,7 @@ export async function GET(request: Request) {
     }
     
     // Récupérer les transactions
-    const transactions = dbService.getUserTransactions(parseInt(user.id.toString()));
+    const transactions = await dbService.getUserTransactions(user.id);
     
     return NextResponse.json(transactions);
     
@@ -41,7 +41,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const dbService = getDbService();
+    const dbService = getSupabaseService();
     const body = await request.json();
     const { clerk_id, type, amount, description, reference_id } = body;
     
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
     }
     
     // Récupérer l'utilisateur
-    const user = dbService.getUserByClerkId(clerk_id);
+    const user = await dbService.getUserByClerkId(clerk_id);
     if (!user) {
       return NextResponse.json(
         { error: 'Utilisateur non trouvé' },
@@ -62,8 +62,8 @@ export async function POST(request: Request) {
     }
     
     // Créer la transaction
-    dbService.addWalletTransaction(
-      parseInt(user.id.toString()),
+    await dbService.addWalletTransaction(
+      user.id,
       type,
       amount,
       description,
@@ -71,7 +71,7 @@ export async function POST(request: Request) {
     );
     
     // Récupérer le nouveau solde
-    const updatedUser = dbService.getUserByClerkId(clerk_id);
+    const updatedUser = await dbService.getUserByClerkId(clerk_id);
     
     return NextResponse.json({ 
       success: true,

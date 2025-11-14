@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import { getDbService } from '@/lib/db-service';
+import { getSupabaseService } from '@/lib/db-supabase';
 import { auth } from '@clerk/nextjs/server';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const dbService = getDbService();
+    const dbService = getSupabaseService();
     const { userId } = await auth();
     
     if (!userId) {
@@ -17,7 +17,7 @@ export async function GET() {
     }
 
     // Obtenir l'utilisateur depuis la base de données
-    const user = dbService.getUserByClerkId(userId);
+    const user = await dbService.getUserByClerkId(userId);
     
     if (!user) {
       return NextResponse.json(
@@ -27,7 +27,7 @@ export async function GET() {
     }
 
     // Récupérer les statistiques personnalisées de l'utilisateur
-    const stats = dbService.getUserStats(user.id);
+    const stats = await dbService.getUserStats(user.id);
     
     if (!stats) {
       return NextResponse.json(

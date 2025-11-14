@@ -506,6 +506,147 @@ export class SupabaseService {
       totalWon: user.data?.total_won || 0,
     };
   }
+
+  // ==================== GESTION DES PARIS PROBLÉMATIQUES ====================
+  
+  async getProblematicBets(): Promise<any[]> {
+    // Récupérer les paris avec des matchs ayant un statut fini mais le pari toujours en attente
+    const { data, error } = await supabaseAdmin
+      .from('bets')
+      .select(`
+        *,
+        match:matches(
+          *,
+          team1:teams!matches_team1_id_fkey(name, tag),
+          team2:teams!matches_team2_id_fkey(name, tag)
+        ),
+        team:teams(name, tag)
+      `)
+      .eq('status', 'pending')
+      .in('match.status', ['finished', 'cancelled']);
+    
+    if (error) {
+      console.error('Erreur getProblematicBets:', error);
+      return [];
+    }
+    
+    return data || [];
+  }
+
+  async cancelBet(betId: string, reason: string): Promise<boolean> {
+    // Récupérer les infos du pari
+    const { data: bet, error: betError } = await supabaseAdmin
+      .from('bets')
+      .select('user_id, amount')
+      .eq('id', betId)
+      .single();
+    
+    if (betError || !bet) {
+      console.error('Erreur récupération pari:', betError);
+      return false;
+    }
+
+    // Annuler le pari
+    const { error: updateError } = await supabaseAdmin
+      .from('bets')
+      .update({ 
+        status: 'cancelled',
+        resolved_at: new Date().toISOString()
+      })
+      .eq('id', betId);
+    
+    if (updateError) {
+      console.error('Erreur cancelBet:', updateError);
+      return false;
+    }
+
+    // Rembourser l'utilisateur
+    await this.addWalletTransaction(
+      bet.user_id,
+      'refund',
+      bet.amount,
+      reason,
+      betId
+    );
+    
+    return true;
+  }
+
+  async deleteBet(betId: string, reason: string): Promise<boolean> {
+    // Récupérer les infos du pari
+    const { data: bet, error: betError } = await supabaseAdmin
+      .from('bets')
+      .select('user_id, amount, status')
+      .eq('id', betId)
+      .single();
+    
+    if (betError || !bet) {
+      console.error('Erreur récupération pari:', betError);
+      return false;
+    }
+
+    // Si le pari est en attente, rembourser avant de supprimer
+    if (bet.status === 'pending') {
+      await this.addWalletTransaction(
+        bet.user_id,
+        'refund',
+        bet.amount,
+        reason,
+        betId
+      );
+    }
+
+    // Supprimer le pari
+    const { error: deleteError } = await supabaseAdmin
+      .from('bets')
+      .delete()
+      .eq('id', betId);
+    
+    if (deleteError) {
+      console.error('Erreur deleteBet:', deleteError);
+      return false;
+    }
+    
+    return true;
+  }
+
+  async cleanupProblematicBets(): Promise<{ cancelled: number; deleted: number }> {
+    const problematicBets = await this.getProblematicBets();
+    let cancelled = 0;
+    let deleted = 0;
+
+    for (const bet of problematicBets) {
+      if (bet.match?.status === 'cancelled') {
+        // Annuler et rembourser les paris sur matchs annulés
+        const success = await this.cancelBet(bet.id, 'Match annulé');
+        if (success) cancelled++;
+      } else if (bet.match?.status === 'finished') {
+        // Supprimer les paris orphelins sur matchs terminés
+        const success = await this.deleteBet(bet.id, 'Nettoyage automatique');
+        if (success) deleted++;
+      }
+    }
+
+    return { cancelled, deleted };
+  }
+
+  // ==================== MISE À JOUR DES STATUTS ====================
+  
+  async updateMatchStatuses(): Promise<void> {
+    const now = new Date();
+    const currentDate = now.toISOString().split('T')[0];
+    const currentTime = now.toTimeString().split(' ')[0].substring(0, 5);
+
+    // Mettre à jour les matchs qui devraient être 'live'
+    await supabaseAdmin
+      .from('matches')
+      .update({ status: 'live' })
+      .eq('status', 'upcoming')
+      .lte('match_date', currentDate)
+      .lte('match_time', currentTime);
+
+    // Les matchs terminés doivent être mis à jour manuellement par l'admin
+  }
 }
 
 // Instance singleton

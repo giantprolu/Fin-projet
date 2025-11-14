@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getDbService } from '@/lib/db-service';
+import { getSupabaseService } from '@/lib/db-supabase';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,8 +8,8 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const dbService = getDbService();
-    const match = dbService.getMatchById(params.id);
+    const dbService = getSupabaseService();
+    const match = await dbService.getMatchById(params.id);
     
     if (!match) {
       return NextResponse.json(

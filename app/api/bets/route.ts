@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
-import { getDbService } from '@/lib/db-service';
+import { getSupabaseService } from '@/lib/db-supabase';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
-    const dbService = getDbService();
+    const dbService = getSupabaseService();
     const body = await request.json();
     const { clerk_id, match_id, team_id, amount, odds } = body;
     
@@ -18,13 +18,13 @@ export async function POST(request: Request) {
     }
     
     // Récupérer ou créer l'utilisateur
-    let user = dbService.getUserByClerkId(clerk_id);
+    let user = await dbService.getUserByClerkId(clerk_id);
     
     if (!user) {
       // Si l'utilisateur n'existe pas, le créer avec des données par défaut
       const username = `user_${clerk_id.slice(-8)}`;
       const email = `${clerk_id}@example.com`;
-      user = dbService.createOrGetUser(clerk_id, username, email);
+      user = await dbService.createOrGetUser(clerk_id, username, email);
     }
     
     if (!user) {
@@ -46,8 +46,8 @@ export async function POST(request: Request) {
     const potential_payout = amount * odds;
     
     // Créer le pari d'abord
-    const betId = dbService.createBet({
-      user_id: user.id.toString(),
+    const betId = await dbService.createBet({
+      user_id: user.id,
       match_id,
       team_id,
       amount,
@@ -57,8 +57,8 @@ export async function POST(request: Request) {
     });
     
     // Déduire le montant du solde et créer la transaction
-    dbService.addWalletTransaction(
-      user.id, // Passer directement l'ID utilisateur (string ou number)
+    await dbService.addWalletTransaction(
+      user.id, // Passer directement l'ID utilisateur (number)
       'bet', 
       amount, 
       `Pari placé sur le match ${match_id}`,
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
     );
     
     // Récupérer le nouveau solde après la transaction
-    const updatedUser = dbService.getUserByClerkId(clerk_id);
+    const updatedUser = await dbService.getUserByClerkId(clerk_id);
     
     return NextResponse.json({ 
       success: true, 
@@ -86,7 +86,7 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   try {
-    const dbService = getDbService();
+    const dbService = getSupabaseService();
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('user_id');
     
@@ -97,7 +97,7 @@ export async function GET(request: Request) {
       );
     }
     
-    const bets = dbService.getUserBets(parseInt(userId, 10));
+    const bets = await dbService.getUserBets(parseInt(userId, 10));
     return NextResponse.json(bets);
     
   } catch (error) {

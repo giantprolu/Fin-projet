@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getDbService } from '@/lib/db-service';
+import { getSupabaseService } from '@/lib/db-supabase';
 import { auth } from '@clerk/nextjs/server';
 
 export const dynamic = 'force-dynamic';
@@ -15,14 +15,14 @@ export async function GET() {
       );
     }
 
-    const dbService = getDbService();
+    const dbService = getSupabaseService();
     // Obtenir ou créer l'utilisateur
-    let user = dbService.getUserByClerkId(userId);
+    let user = await dbService.getUserByClerkId(userId);
     
     if (!user) {
       // Si l'utilisateur n'existe pas, on doit d'abord récupérer ses infos de Clerk
       // Pour l'instant, créons avec des données par défaut
-      user = dbService.createOrGetUser(userId, 'Utilisateur', 'user@example.com');
+      user = await dbService.createOrGetUser(userId, 'Utilisateur', 'user@example.com');
     }
 
     return NextResponse.json({ user });
@@ -37,7 +37,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const dbService = getDbService();
+    const dbService = getSupabaseService();
     const { userId } = await auth();
     
     if (!userId) {
@@ -57,7 +57,7 @@ export async function POST(request: Request) {
     console.log('Création utilisateur avec:', { clerkId, username, email });
 
     // Créer ou récupérer l'utilisateur
-    const user = dbService.createOrGetUser(clerkId, username, email);
+    const user = await dbService.createOrGetUser(clerkId, username, email);
 
     return NextResponse.json({ 
       success: true, 
