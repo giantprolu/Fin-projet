@@ -187,7 +187,11 @@ export class SupabaseService {
   async getSimpleMatches(): Promise<any[]> {
     const { data, error } = await supabaseAdmin
       .from('matches')
-      .select('*')
+      .select(`
+        *,
+        team1:teams!matches_team1_id_fkey(id, name, tag, logo_url),
+        team2:teams!matches_team2_id_fkey(id, name, tag, logo_url)
+      `)
       .order('match_date', { ascending: true })
       .order('match_time', { ascending: true });
     
