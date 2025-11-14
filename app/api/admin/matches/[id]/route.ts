@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDbService } from '@/lib/db-service';
+import { getSupabaseService } from '@/lib/db-supabase';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,7 +8,7 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const db = getDbService();
+    const db = getSupabaseService();
     const body = await request.json();
     const { game, tournament, team1, team2, team1Odds, team2Odds, date, time, status } = body;
     const matchId = parseInt(params.id);
@@ -20,7 +20,7 @@ export async function PUT(
       );
     }
 
-    const success = db.updateSimpleMatch(matchId, {
+    const success = await db.updateSimpleMatch(matchId, {
       game,
       tournament,
       team1_name: team1,
@@ -56,9 +56,9 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const db = getDbService();
+    const db = getSupabaseService();
     const matchId = parseInt(params.id);
-    const success = db.deleteSimpleMatch(matchId);
+    const success = await db.deleteSimpleMatch(matchId);
 
     if (success) {
       return NextResponse.json({ 

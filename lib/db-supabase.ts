@@ -183,6 +183,135 @@ export class SupabaseService {
     return true;
   }
 
+  // Méthodes pour l'interface admin (matches simples)
+  async getSimpleMatches(): Promise<any[]> {
+    const { data, error } = await supabaseAdmin
+      .from('matches')
+      .select('*')
+      .order('match_date', { ascending: true })
+      .order('match_time', { ascending: true });
+    
+    if (error) {
+      console.error('Erreur getSimpleMatches:', error);
+      return [];
+    }
+    
+    return data || [];
+  }
+
+  async createSimpleMatch(matchData: {
+    game: string;
+    tournament: string;
+    team1_name: string;
+    team2_name: string;
+    team1_odds: number;
+    team2_odds: number;
+    date: string;
+    time: string;
+    status: string;
+  }): Promise<number | null> {
+    // Trouver les IDs des équipes par leur nom
+    const { data: team1Data } = await supabaseAdmin
+      .from('teams')
+      .select('id')
+      .eq('name', matchData.team1_name)
+      .single();
+    
+    const { data: team2Data } = await supabaseAdmin
+      .from('teams')
+      .select('id')
+      .eq('name', matchData.team2_name)
+      .single();
+    
+    if (!team1Data || !team2Data) {
+      console.error('Équipes non trouvées:', matchData.team1_name, matchData.team2_name);
+      return null;
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from('matches')
+      .insert([{
+        team1_id: team1Data.id,
+        team2_id: team2Data.id,
+        game: matchData.game,
+        tournament: matchData.tournament,
+        match_date: matchData.date,
+        match_time: matchData.time,
+        team1_odds: matchData.team1_odds,
+        team2_odds: matchData.team2_odds,
+        status: matchData.status
+      }])
+      .select('id')
+      .single();
+    
+    if (error) {
+      console.error('Erreur createSimpleMatch:', error);
+      return null;
+    }
+    
+    return data?.id || null;
+  }
+
+  async updateSimpleMatch(matchId: number, matchData: {
+    game: string;
+    tournament: string;
+    team1_name: string;
+    team2_name: string;
+    team1_odds: number;
+    team2_odds: number;
+    date: string;
+    time: string;
+    status: string;
+  }): Promise<boolean> {
+    // Trouver les IDs des équipes
+    const { data: team1Data } = await supabaseAdmin
+      .from('teams')
+      .select('id')
+      .eq('name', matchData.team1_name)
+      .single();
+    
+    const { data: team2Data } = await supabaseAdmin
+      .from('teams')
+      .select('id')
+      .eq('name', matchData.team2_name)
+      .single();
+    
+    if (!team1Data || !team2Data) {
+      console.error('Équipes non trouvées');
+      return false;
+    }
+
+    const { error } = await supabaseAdmin
+      .from('matches')
+      .update({
+        team1_id: team1Data.id,
+        team2_id: team2Data.id,
+        game: matchData.game,
+        tournament: matchData.tournament,
+        match_date: matchData.date,
+        match_time: matchData.time,
+        team1_odds: matchData.team1_odds,
+        team2_odds: matchData.team2_odds,
+        status: matchData.status
+      })
+      .eq('id', matchId);
+    
+    if (error) {
+      console.error('Erreur updateSimpleMatch:', error);
+      return false;
+    }
+    
+    return true;
+  }
+
+  async deleteSimpleMatch(matchId: number): Promise<boolean> {
+    return this.deleteMatch(matchId);
+  }
+    }
+    
+    return true;
+  }
+
   // ==================== UTILISATEURS ====================
   
   async getUserByClerkId(clerkId: string): Promise<User | null> {

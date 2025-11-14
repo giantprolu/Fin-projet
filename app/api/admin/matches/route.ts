@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDbService } from '@/lib/db-service';
+import { getSupabaseService } from '@/lib/db-supabase';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const db = getDbService();
-    const matches = db.getSimpleMatches();
+    const db = getSupabaseService();
+    const matches = await db.getSimpleMatches();
     return NextResponse.json({ matches });
   } catch (error) {
     console.error('Erreur lors de la récupération des matchs:', error);
@@ -19,7 +19,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const db = getDbService();
+    const db = getSupabaseService();
     const body = await request.json();
     const { game, tournament, team1, team2, team1Odds, team2Odds, date, time, status } = body;
 
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const matchId = db.createSimpleMatch({
+    const matchId = await db.createSimpleMatch({
       game,
       tournament,
       team1_name: team1,
