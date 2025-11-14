@@ -148,3 +148,18 @@ SELECT
   '✅ Base de données initialisée avec succès!' as message,
   COUNT(*) as nombre_equipes 
 FROM teams;
+
+-- ============================================
+-- 📦 CONFIGURATION DU STOCKAGE (STORAGE)
+-- ============================================
+-- ⚠️ IMPORTANT : Le stockage ne peut pas être créé via SQL
+-- Vous devez créer manuellement un bucket dans Supabase :
+--
+-- 1. Allez dans Storage dans le menu de gauche
+-- 2. Cliquez sur "Create a new bucket"
+-- 3. Nom du bucket : "team-assets"
+-- 4. Cochez "Public bucket" (pour que les images soient accessibles)
+-- 5. Cliquez sur "Create bucket"
+--
+-- Une fois créé, les logos d'équipes seront uploadés automatiquement !
+-- ============================================

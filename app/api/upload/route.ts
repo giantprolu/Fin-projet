@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir, unlink } from 'fs/promises';
-import { join, extname } from 'path';
-import { existsSync } from 'fs';
+import { supabaseAdmin } from '@/lib/supabase';
+
+export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Type de fichier non autorisé' }, { status: 400 });
     }
 
-    // Nettoyer le nom de l'équipe pour le fichier (enlever caractères spéciaux)
+    // Nettoyer le nom de l'équipe pour le fichier
     const cleanTeamName = teamName
       .toLowerCase()
       .replace(/[^a-z0-9]/g, '_')
@@ -27,49 +27,43 @@ export async function POST(request: NextRequest) {
       .replace(/^_|_$/g, '');
     
     const extension = file.name.split('.').pop();
-    const fileName = `${cleanTeamName}.${extension}`;
+    const fileName = `${cleanTeamName}_${Date.now()}.${extension}`;
+    const filePath = `team-logos/${fileName}`;
 
-    // Créer le dossier public/assets s'il n'existe pas
-    const assetsDir = join(process.cwd(), 'public', 'assets');
-    try {
-      await mkdir(assetsDir, { recursive: true });
-    } catch (err) {
-      // Le dossier existe déjà
+    // Convertir le fichier en ArrayBuffer
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = new Uint8Array(arrayBuffer);
+
+    // Upload vers Supabase Storage
+    const { data, error } = await supabaseAdmin.storage
+      .from('team-assets')
+      .upload(filePath, buffer, {
+        contentType: file.type,
+        upsert: true
+      });
+
+    if (error) {
+      console.error('Erreur Supabase Storage:', error);
+      return NextResponse.json({ 
+        error: 'Erreur lors de l\'upload vers le stockage' 
+      }, { status: 500 });
     }
 
-    // Vérifier si un fichier avec le même nom (mais extension différente) existe déjà
-    const baseFileName = cleanTeamName;
-    const existingFiles = ['.png', '.jpg', '.jpeg', '.webp', '.svg'].map(ext => 
-      join(assetsDir, `${baseFileName}${ext}`)
-    );
-    
-    // Supprimer les anciens fichiers du même nom
-    for (const filePath of existingFiles) {
-      if (existsSync(filePath)) {
-        try {
-          await unlink(filePath);
-        } catch (err) {
-          // Ignorer les erreurs de suppression
-        }
-      }
-    }
+    // Obtenir l'URL publique
+    const { data: urlData } = supabaseAdmin.storage
+      .from('team-assets')
+      .getPublicUrl(filePath);
 
-    // Convertir le fichier en buffer et l'enregistrer
-    const bytes = await file.arrayBuffer();
-    const buffer = new Uint8Array(bytes);
-    const filePath = join(assetsDir, fileName);
-    
-    await writeFile(filePath, buffer);
-
-    // Retourner le chemin de l'image
     return NextResponse.json({ 
       success: true, 
-      imagePath: `/assets/${fileName}`,
+      imagePath: urlData.publicUrl,
       fileName: fileName
     });
 
   } catch (error) {
     console.error('Erreur upload:', error);
-    return NextResponse.json({ error: 'Erreur lors de l\'upload' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Erreur lors de l\'upload: ' + (error instanceof Error ? error.message : 'Erreur inconnue')
+    }, { status: 500 });
   }
 }
