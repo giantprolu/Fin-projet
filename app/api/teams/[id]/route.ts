@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDbService } from '@/lib/db-service';
+import { getSupabaseService } from '@/lib/db-supabase';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,7 +8,7 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const dbService = getDbService();
+    const dbService = getSupabaseService();
     const { id } = params;
     const body = await request.json();
     const { name, tag, country, logo_url, founded_year, total_earnings } = body;
@@ -19,12 +19,12 @@ export async function PUT(
     }
 
     // Vérifier si le tag existe déjà (en excluant l'équipe actuelle)
-    if (dbService.teamTagExists(tag, id)) {
+    if (await dbService.teamTagExists(tag, id)) {
       return NextResponse.json({ error: 'Ce tag existe déjà' }, { status: 409 });
     }
 
     // Mettre à jour l'équipe
-    const updatedTeam = dbService.updateTeam(id, {
+    const updatedTeam = await dbService.updateTeam(id, {
       name,
       tag,
       country,
@@ -49,10 +49,10 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const dbService = getDbService();
+    const dbService = getSupabaseService();
     const { id } = params;
 
-    const success = dbService.deleteTeam(id);
+    const success = await dbService.deleteTeam(id);
 
     if (!success) {
       return NextResponse.json({ error: 'Équipe non trouvée' }, { status: 404 });

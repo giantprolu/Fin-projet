@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDbService } from '@/lib/db-service';
+import { getSupabaseService } from '@/lib/db-supabase';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const dbService = getDbService();
-    const teams = dbService.getTeams();
+    const dbService = getSupabaseService();
+    const teams = await dbService.getTeams();
     return NextResponse.json(teams);
   } catch (error) {
     console.error('Erreur lors de la récupération des équipes:', error);
@@ -19,7 +19,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const dbService = getDbService();
+    const dbService = getSupabaseService();
     console.log('Début de la création d\'\u00e9quipe');
     const body = await request.json();
     console.log('Body reçu:', body);
@@ -34,21 +34,21 @@ export async function POST(request: NextRequest) {
 
     // Vérifier si le tag existe déjà
     console.log('Vérification du tag:', tag);
-    if (dbService.teamTagExists(tag)) {
+    if (await dbService.teamTagExists(tag)) {
       console.log('Tag déjà existant:', tag);
       return NextResponse.json({ error: 'Ce tag existe déjà' }, { status: 409 });
     }
 
     // Créer la nouvelle équipe
     console.log('Création de l\'équipe...');
-    const newTeam = dbService.createTeam({
+    const newTeam = await dbService.createTeam({
       name,
       tag,
       country: country || 'FR',
       logo_url: logo_url || null,
       founded_year: founded_year || new Date().getFullYear(),
       total_earnings: total_earnings || 0
-    });
+    } as any);
 
     console.log('Équipe créée:', newTeam);
     console.log('Envoi de la réponse...');
