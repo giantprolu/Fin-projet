@@ -1,14 +1,23 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('⚠️ Variables Supabase manquantes:', {
+    url: !!supabaseUrl,
+    anonKey: !!supabaseAnonKey,
+    serviceKey: !!supabaseServiceKey
+  });
+}
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Client avec service role pour les opérations admin (côté serveur uniquement)
 export const supabaseAdmin = createClient(
   supabaseUrl,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  supabaseServiceKey || supabaseAnonKey, // Fallback sur anon key si service key manquante
   {
     auth: {
       autoRefreshToken: false,

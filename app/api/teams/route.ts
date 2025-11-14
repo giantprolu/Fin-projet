@@ -5,13 +5,24 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
+    console.log('🔍 GET /api/teams appelé');
+    console.log('🔑 Variables env:', {
+      hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+      hasAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY
+    });
+    
     const dbService = getSupabaseService();
+    console.log('✅ Service Supabase créé');
+    
     const teams = await dbService.getTeams();
+    console.log('📊 Équipes récupérées:', teams.length);
+    
     return NextResponse.json(teams);
   } catch (error) {
-    console.error('Erreur lors de la récupération des équipes:', error);
+    console.error('❌ Erreur lors de la récupération des équipes:', error);
     return NextResponse.json(
-      { error: 'Erreur lors de la récupération des équipes' },
+      { error: 'Erreur lors de la récupération des équipes', details: error instanceof Error ? error.message : 'Erreur inconnue' },
       { status: 500 }
     );
   }

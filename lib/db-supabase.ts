@@ -5,16 +5,19 @@ export class SupabaseService {
   // ==================== ÉQUIPES ====================
   
   async getTeams(): Promise<Team[]> {
+    console.log('🔍 SupabaseService.getTeams() appelé');
+    
     const { data, error } = await supabaseAdmin
       .from('teams')
       .select('*')
       .order('name');
     
     if (error) {
-      console.error('Erreur getTeams:', error);
+      console.error('❌ Erreur Supabase getTeams:', error);
       return [];
     }
     
+    console.log('✅ Données reçues de Supabase:', data?.length || 0, 'équipes');
     return data || [];
   }
 
