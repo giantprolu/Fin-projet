@@ -53,8 +53,8 @@ export default function AdminEquipesPage() {
   };
 
   const getTeamLogo = (tag: string, logoUrl?: string): string => {
-    // Si un logo personnalisé est fourni, l'utiliser
-    if (logoUrl && logoUrl.startsWith('/assets/')) {
+    // Si un logo personnalisé est fourni, l'utiliser (local ou Supabase)
+    if (logoUrl && (logoUrl.startsWith('/assets/') || logoUrl.startsWith('http'))) {
       return logoUrl;
     }
     
@@ -118,10 +118,13 @@ export default function AdminEquipesPage() {
       });
 
       const result = await response.json();
+      console.log('📤 Résultat upload:', result);
 
       if (result.success) {
+        console.log('✅ Logo uploadé avec succès:', result.imagePath);
         setFormData(prev => ({ ...prev, logo_url: result.imagePath }));
       } else {
+        console.error('❌ Erreur upload:', result.error);
         alert('Erreur lors de l\'upload: ' + result.error);
       }
     } catch (error) {
