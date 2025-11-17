@@ -321,14 +321,15 @@ export default function AdminEquipesPage() {
                     )}
                     {(imagePreview || formData.logo_url) && (
                       <div className="flex items-center gap-3 p-3 border rounded-lg bg-gray-50">
-                        <Image
-                          src={imagePreview || formData.logo_url}
-                          alt="Aperçu du logo"
-                          width={48}
-                          height={48}
-                          className="object-contain rounded border"
-                          style={{ width: 'auto', height: 'auto' }}
-                        />
+                        <div className="relative w-12 h-12 flex-shrink-0">
+                          <Image
+                            src={imagePreview || formData.logo_url}
+                            alt="Aperçu du logo"
+                            width={48}
+                            height={48}
+                            className="object-contain rounded border w-full h-full"
+                          />
+                        </div>
                         <span className="text-sm text-slate-300">Logo sélectionné</span>
                       </div>
                     )}
@@ -486,14 +487,15 @@ export default function AdminEquipesPage() {
                                 )}
                                 {(imagePreview || formData.logo_url) && (
                                   <div className="flex items-center gap-3 p-3 border rounded-lg bg-gray-50">
-                                    <Image
-                                      src={imagePreview || formData.logo_url}
-                                      alt="Aperçu du logo"
-                                      width={48}
-                                      height={48}
-                                      className="object-contain rounded border"
-                                      style={{ width: 'auto', height: 'auto' }}
-                                    />
+                                    <div className="relative w-12 h-12 flex-shrink-0">
+                                      <Image
+                                        src={imagePreview || formData.logo_url}
+                                        alt="Aperçu du logo"
+                                        width={48}
+                                        height={48}
+                                        className="object-contain rounded border w-full h-full"
+                                      />
+                                    </div>
                                     <span className="text-sm text-gray-600">Logo actuel</span>
                                   </div>
                                 )}
