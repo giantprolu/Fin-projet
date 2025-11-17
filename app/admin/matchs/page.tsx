@@ -60,6 +60,18 @@ const tournamentOptions = {
 };
 
 const renderTeamLogo = (logo: string, teamName: string) => {
+  // Si le logo est undefined ou null, utiliser un logo par défaut
+  if (!logo) {
+    return (
+      <Image
+        src="/assets/default-team.png"
+        alt={teamName}
+        width={48}
+        height={48}
+        className="rounded-lg object-contain"
+      />
+    );
+  }
   // Si le logo commence par '/', c'est un chemin d'image
   if (logo.startsWith('/')) {
     return (
@@ -120,7 +132,26 @@ export default function AdminMatchsPage() {
     try {
       const response = await fetch('/api/admin/matches');
       const data = await response.json();
-      setMatches(data.matches || []);
+      // Transformer les données de Supabase pour correspondre à l'interface attendue
+      const transformedMatches = (data.matches || []).map((match: any) => ({
+        id: match.id,
+        game: match.game,
+        tournament: match.tournament,
+        team1: {
+          name: match.team1?.name || 'Unknown',
+          logo: match.team1?.logo_url || '/assets/default-team.png',
+          odds: match.team1_odds
+        },
+        team2: {
+          name: match.team2?.name || 'Unknown',
+          logo: match.team2?.logo_url || '/assets/default-team.png',
+          odds: match.team2_odds
+        },
+        date: match.match_date,
+        time: match.match_time,
+        status: match.status
+      }));
+      setMatches(transformedMatches);
     } catch (error) {
       console.error('Erreur lors du chargement des matchs:', error);
     }
