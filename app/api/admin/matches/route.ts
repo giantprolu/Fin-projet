@@ -5,11 +5,15 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
+    console.log('🔍 GET /api/admin/matches - Début');
     const db = getSupabaseService();
+    console.log('🔍 Service Supabase obtenu');
     const matches = await db.getSimpleMatches();
+    console.log('✅ Matchs récupérés:', matches.length, 'matchs');
+    console.log('📦 Premier match:', matches[0]);
     return NextResponse.json({ matches });
   } catch (error) {
-    console.error('Erreur lors de la récupération des matchs:', error);
+    console.error('❌ Erreur lors de la récupération des matchs:', error);
     return NextResponse.json(
       { error: 'Erreur lors de la récupération des matchs' },
       { status: 500 }
