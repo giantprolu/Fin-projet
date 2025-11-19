@@ -39,6 +39,9 @@ export default function ParierPage() {
   const [selectedMatch, setSelectedMatch] = useState<number | null>(null);
   const [selectedTeam, setSelectedTeam] = useState<'team1' | 'team2' | null>(null);
   const [betAmount, setBetAmount] = useState('');
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [processingBet, setProcessingBet] = useState(false);
+  const [balanceChanged, setBalanceChanged] = useState(false);
 
   useEffect(() => {
     const fetchMatches = async () => {
@@ -46,12 +49,34 @@ export default function ParierPage() {
         const response = await fetch('/api/matches');
         const data = await response.json();
         
-        // Filtrer seulement les matchs programmés (pas finis)
-        const availableMatches = data.filter((match: any) => 
-          match.status === 'scheduled' || match.status === 'live'
-        );
+        console.log('📥 Données brutes reçues:', data);
         
-        setMatches(availableMatches);
+        // Transformer les données pour correspondre à l'interface Match
+        const transformedMatches = data
+          .filter((match: any) => match.status === 'scheduled' || match.status === 'live')
+          .map((match: any) => ({
+            id: match.id,
+            game: match.game,
+            tournament: match.tournament,
+            team1: {
+              name: match.team1?.name || 'Team 1',
+              tag: match.team1?.tag || '',
+              logo: match.team1?.logo_url || '/assets/Team_Vitality_Logo_2018.png',
+              odds: match.team1_odds || 1.5
+            },
+            team2: {
+              name: match.team2?.name || 'Team 2',
+              tag: match.team2?.tag || '',
+              logo: match.team2?.logo_url || '/assets/Team_Vitality_Logo_2018.png',
+              odds: match.team2_odds || 1.5
+            },
+            status: match.status,
+            match_date: match.match_date,
+            match_time: match.match_time
+          }));
+        
+        console.log('✅ Matchs transformés:', transformedMatches);
+        setMatches(transformedMatches);
       } catch (error) {
         console.error('Erreur lors du chargement des matchs:', error);
       } finally {
@@ -61,6 +86,23 @@ export default function ParierPage() {
 
     fetchMatches();
   }, []);
+
+  // Handler pour sélectionner une équipe avec feedback immédiat
+  const handleTeamSelect = (matchId: number, team: 'team1' | 'team2') => {
+    setSelectedMatch(matchId);
+    setSelectedTeam(team);
+    // Reset le montant si on change d'équipe
+    if (selectedMatch === matchId && selectedTeam !== team) {
+      setBetAmount('');
+    }
+  };
+
+  // Handler pour les montants rapides
+  const handleQuickAmount = (amount: number) => {
+    if (amount <= balance) {
+      setBetAmount(amount.toString());
+    }
+  };
 
   const renderTeamLogo = (logo: string | undefined, teamName: string) => {
     if (logo && logo.startsWith('/')) {
@@ -81,8 +123,6 @@ export default function ParierPage() {
       </div>
     );
   };
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  const [processingBet, setProcessingBet] = useState(false);
 
   const handlePlaceBet = async () => {
     if (selectedMatch !== null && selectedTeam && betAmount) {
@@ -96,8 +136,12 @@ export default function ParierPage() {
           selectedMatch,
           selectedTeam === 'team1' ? 1 : 2, // ID fictif pour la démo
           parseFloat(betAmount),
-          selectedMatchData[selectedTeam].odds
+          selectedMatchData[selectedTeam].odds || 1.0
         );
+
+        // Animation du solde qui change
+        setBalanceChanged(true);
+        setTimeout(() => setBalanceChanged(false), 600);
 
         setShowConfirmation(true);
         
@@ -116,7 +160,7 @@ export default function ParierPage() {
   };
 
   const selectedMatchData = matches.find((m) => m.id === selectedMatch);
-  const potentialWin = selectedMatchData && selectedTeam && betAmount
+  const potentialWin = selectedMatchData && selectedTeam && betAmount && selectedMatchData[selectedTeam].odds
     ? (parseFloat(betAmount) * selectedMatchData[selectedTeam].odds).toFixed(2)
     : '0.00';
 
@@ -147,11 +191,20 @@ export default function ParierPage() {
             className="parier-wallet"
           >
             <Card className="parier-balance">
-              <div className="flex items-center gap-3">
-                <Wallet className="w-6 h-6 text-copper" />
-                <div>
-                  <p className="text-sm text-slate-400">Solde disponible</p>
-                  <p className="text-2xl font-bold text-white">{balance.toFixed(2)}€</p>
+              <div className="parier-balance-content">
+                <Wallet className="parier-balance-icon" />
+                <div className="parier-balance-info">
+                  <p className="parier-balance-label">Solde disponible</p>
+                  <motion.p 
+                    className="parier-balance-amount"
+                    animate={balanceChanged ? { 
+                      scale: [1, 1.15, 1],
+                      color: ['#14B8A6', '#C79081', '#14B8A6']
+                    } : {}}
+                    transition={{ duration: 0.6 }}
+                  >
+                    {balance.toFixed(2)}€
+                  </motion.p>
                 </div>
               </div>
             </Card>
@@ -159,30 +212,40 @@ export default function ParierPage() {
         )}
 
         {/* Matches Section */}
-        <div className="parier-grid">
-          <div className="parier-matches">
+        <div className="parier-layout">
+          <div className="parier-matches-section">
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                <Trophy className="w-6 h-6 text-copper" />
-                Matchs Disponibles
-              </h2>
+              <div className="parier-section-header">
+                <Trophy className="parier-section-icon" />
+                <h2 className="parier-section-title">Matchs Disponibles</h2>
+              </div>
+              
+              {!selectedMatch && matches.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="parier-help-message"
+                >
+                  <p>👆 Cliquez sur une équipe pour sélectionner votre pari</p>
+                </motion.div>
+              )}
 
-              <div className="space-y-4">
+              <div className="parier-matches-list">
                 {loading ? (
                   <div className="parier-loading">
                     <motion.div
                       animate={{ rotate: 360 }}
                       transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                      className="w-12 h-12 border-4 border-copper border-t-transparent rounded-full"
+                      className="parier-loading-spinner"
                     />
                   </div>
                 ) : matches.length === 0 ? (
-                  <div className="text-center py-12">
-                    <p className="text-slate-400 text-lg">Aucun match disponible pour le moment</p>
+                  <div className="parier-no-matches">
+                    <p>Aucun match disponible pour le moment</p>
                   </div>
                 ) : (
                   matches.map((match, index) => (
@@ -198,10 +261,9 @@ export default function ParierPage() {
                           ? 'parier-match-card--selected'
                           : ''
                       }`}
-                      onClick={() => setSelectedMatch(match.id)}
                     >
                       <div className="parier-match-header">
-                        <div>
+                        <div className="parier-match-info">
                           <Badge className="parier-match-game">
                             {match.game}
                           </Badge>
@@ -211,8 +273,9 @@ export default function ParierPage() {
                           <motion.div
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
+                            className="parier-match-selected-icon"
                           >
-                            <CheckCircle2 className="w-8 h-8 text-copper" />
+                            <CheckCircle2 />
                           </motion.div>
                         )}
                       </div>
@@ -221,42 +284,60 @@ export default function ParierPage() {
                         <motion.div
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedMatch(match.id);
-                            setSelectedTeam('team1');
-                          }}
+                          onClick={() => handleTeamSelect(match.id, 'team1')}
                           className={`parier-team-option ${
                             selectedMatch === match.id && selectedTeam === 'team1'
                               ? 'parier-team-option--selected'
                               : ''
                           }`}
                         >
-                          <div className="text-center">
-                            <div className="parier-team-logo">{renderTeamLogo(match.team1.logo, match.team1.name)}</div>
+                          <div className="parier-team-content">
+                            {match.team1.logo && match.team1.logo.startsWith('/') ? (
+                              <Image
+                                src={match.team1.logo}
+                                alt={match.team1.name}
+                                width={56}
+                                height={56}
+                                className="parier-team-logo"
+                              />
+                            ) : (
+                              <div className="parier-team-logo parier-team-logo-fallback">
+                                {match.team1.name.substring(0, 2).toUpperCase()}
+                              </div>
+                            )}
                             <p className="parier-team-name">{match.team1.name}</p>
-                            <div className="parier-team-odds">{match.team1.odds}</div>
+                            <div className="parier-team-odds">{match.team1.odds ? match.team1.odds.toFixed(2) : '1.00'}</div>
                           </div>
                         </motion.div>
+
+                        <div className="parier-vs">VS</div>
 
                         <motion.div
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedMatch(match.id);
-                            setSelectedTeam('team2');
-                          }}
+                          onClick={() => handleTeamSelect(match.id, 'team2')}
                           className={`parier-team-option ${
                             selectedMatch === match.id && selectedTeam === 'team2'
                               ? 'parier-team-option--selected'
                               : ''
                           }`}
                         >
-                          <div className="text-center">
-                            <div className="parier-team-logo">{renderTeamLogo(match.team2.logo, match.team2.name)}</div>
+                          <div className="parier-team-content">
+                            {match.team2.logo && match.team2.logo.startsWith('/') ? (
+                              <Image
+                                src={match.team2.logo}
+                                alt={match.team2.name}
+                                width={56}
+                                height={56}
+                                className="parier-team-logo"
+                              />
+                            ) : (
+                              <div className="parier-team-logo parier-team-logo-fallback">
+                                {match.team2.name.substring(0, 2).toUpperCase()}
+                              </div>
+                            )}
                             <p className="parier-team-name">{match.team2.name}</p>
-                            <div className="parier-team-odds">{match.team2.odds}</div>
+                            <div className="parier-team-odds">{match.team2.odds ? match.team2.odds.toFixed(2) : '1.00'}</div>
                           </div>
                         </motion.div>
                       </div>
@@ -268,7 +349,7 @@ export default function ParierPage() {
             </motion.div>
           </div>
 
-          <div className="lg:col-span-1">
+          <div className="parier-bet-section">
             <motion.div
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
@@ -276,10 +357,10 @@ export default function ParierPage() {
               className="parier-bet-panel"
             >
               <Card className="parier-bet-panel--active">
-                <h3 className="parier-bet-title">
-                  <Sparkles className="w-6 h-6 text-copper" />
-                  Votre Pari
-                </h3>
+                <div className="parier-bet-header">
+                  <Sparkles className="parier-bet-icon" />
+                  <h3 className="parier-bet-title-text">Votre Pari</h3>
+                </div>
 
                 <AnimatePresence mode="wait">
                   {selectedMatch && selectedTeam ? (
@@ -289,80 +370,112 @@ export default function ParierPage() {
                       exit={{ opacity: 0, y: -20 }}
                       className="space-y-6"
                     >
-                      <div className="p-4 bg-slate-800/80 border border-slate-600 rounded-lg">
-                        <p className="text-sm text-slate-300 mb-2">Match sélectionné</p>
-                        <div className="flex items-center gap-3 mb-2">
-                          <div className="flex-shrink-0">
-                            {selectedMatchData && selectedTeam && renderTeamLogo(
-                              selectedMatchData[selectedTeam].logo, 
-                              selectedMatchData[selectedTeam].name
+                      <div className="parier-selected-match">
+                        <p className="parier-selected-label">Match sélectionné</p>
+                        <div className="parier-selected-content">
+                          <div className="parier-selected-logo-wrapper">
+                            {selectedMatchData && selectedTeam && selectedMatchData[selectedTeam] && (
+                              selectedMatchData[selectedTeam].logo && selectedMatchData[selectedTeam].logo?.startsWith('/') ? (
+                                <Image
+                                  src={selectedMatchData[selectedTeam].logo!}
+                                  alt={selectedMatchData[selectedTeam].name}
+                                  width={48}
+                                  height={48}
+                                  className="rounded-lg object-contain"
+                                />
+                              ) : (
+                                <div className="parier-selected-logo-fallback">
+                                  {selectedMatchData[selectedTeam].name.substring(0, 2).toUpperCase()}
+                                </div>
+                              )
                             )}
                           </div>
-                          <div>
-                            <p className="font-bold text-lg">
-                              {selectedMatchData?.[selectedTeam].name}
+                          <div className="parier-selected-info">
+                            <p className="parier-selected-team-name">
+                              {selectedMatchData?.[selectedTeam]?.name}
                             </p>
-                            <p className="text-sm text-slate-300">
-                              {selectedMatchData?.tournament}
+                            <p className="parier-selected-match-info">
+                              {selectedMatchData?.game} • {selectedMatchData?.tournament}
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center justify-between pt-2 border-t">
-                          <span className="text-sm text-slate-300">Cote</span>
-                          <span className="text-xl font-bold text-copper">
-                            {selectedMatchData?.[selectedTeam].odds}
+                        <div className="parier-selected-odds">
+                          <span className="parier-selected-odds-label">Cote</span>
+                          <span className="parier-selected-odds-value">
+                            {selectedMatchData?.[selectedTeam]?.odds?.toFixed(2) || '1.00'}
                           </span>
                         </div>
                       </div>
 
                       <div className="parier-bet-form">
-                        <Label htmlFor="amount" className="text-lg mb-2 block">
+                        <Label htmlFor="amount" className="parier-bet-label">
                           Montant du pari (€)
                         </Label>
-                        <Input
-                          id="amount"
-                          type="number"
-                          placeholder="50"
-                          value={betAmount}
-                          onChange={(e) => setBetAmount(e.target.value)}
-                          className="parier-bet-input"
-                        />
-                        <div className="flex gap-2 mt-3">
+                        <motion.div
+                          initial={{ scale: 1 }}
+                          animate={{ scale: betAmount ? 1.02 : 1 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <Input
+                            id="amount"
+                            type="number"
+                            placeholder="Entrez votre mise..."
+                            value={betAmount}
+                            onChange={(e) => setBetAmount(e.target.value)}
+                            max={balance}
+                            min={0}
+                            step="0.01"
+                            className="parier-bet-input"
+                          />
+                        </motion.div>
+                        <div className="parier-quick-amounts">
                           {[10, 25, 50, 100].map((amount) => (
-                            <Button
+                            <motion.button
                               key={amount}
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setBetAmount(amount.toString())}
+                              type="button"
+                              onClick={() => handleQuickAmount(amount)}
                               disabled={amount > balance}
-                              className="flex-1 hover:bg-copper/10 hover:border-copper disabled:opacity-30"
+                              whileHover={{ scale: amount <= balance ? 1.05 : 1 }}
+                              whileTap={{ scale: amount <= balance ? 0.95 : 1 }}
+                              className={`parier-quick-amount-btn ${
+                                betAmount === amount.toString() ? 'parier-quick-amount-btn--active' : ''
+                              }`}
                             >
                               {amount}€
-                            </Button>
+                            </motion.button>
                           ))}
                         </div>
+                        {balance > 0 && (
+                          <motion.p 
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="text-xs text-slate-400 mt-2"
+                          >
+                            Solde disponible: <span className="text-teal-400 font-semibold">{balance.toFixed(2)}€</span>
+                          </motion.p>
+                        )}
                       </div>
 
-                      {betAmount && (
+                      {betAmount && selectedMatchData && selectedTeam && selectedMatchData[selectedTeam] && (
                         <motion.div
-                          initial={{ opacity: 0, scale: 0.9 }}
+                          initial={{ opacity: 0, scale: 0.95 }}
                           animate={{ opacity: 1, scale: 1 }}
-                          className="parier-bet-potential"
+                          className="parier-potential-win"
                         >
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-slate-300">Mise</span>
-                            <span className="font-bold">{betAmount}€</span>
+                          <div className="parier-potential-row">
+                            <span className="parier-potential-label">Mise</span>
+                            <span className="parier-potential-value">{parseFloat(betAmount).toFixed(2)}€</span>
                           </div>
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-slate-300">Cote</span>
-                            <span className="font-bold">
-                              {selectedMatchData?.[selectedTeam].odds}
+                          <div className="parier-potential-row">
+                            <span className="parier-potential-label">Cote</span>
+                            <span className="parier-potential-odds">
+                              {selectedMatchData[selectedTeam].odds?.toFixed(2) || '1.00'}
                             </span>
                           </div>
-                          <div className="border-t-2 border-copper/30 pt-2 mt-2">
-                            <div className="flex items-center justify-between">
-                              <span className="font-bold text-lg">Gain potentiel</span>
-                              <span className="text-2xl font-bold text-copper">
+                          <div className="parier-potential-total">
+                            <div className="parier-potential-total-row">
+                              <span className="parier-potential-total-label">Gain potentiel</span>
+                              <span className="parier-potential-total-value">
                                 {potentialWin}€
                               </span>
                             </div>
@@ -378,14 +491,27 @@ export default function ParierPage() {
                           parseFloat(betAmount) > balance ||
                           processingBet
                         }
-                        className="parier-place-bet-btn"
+                        className="parier-place-bet-btn group"
                       >
-                        {processingBet ? 'Placement en cours...' : 'Confirmer le Pari'}
-                        <TrendingUp className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                        {processingBet ? (
+                          <>
+                            <motion.div
+                              animate={{ rotate: 360 }}
+                              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                              className="parier-button-spinner"
+                            />
+                            Placement en cours...
+                          </>
+                        ) : (
+                          <>
+                            Confirmer le Pari
+                            <TrendingUp className="parier-button-icon" />
+                          </>
+                        )}
                       </Button>
 
                       {betAmount && parseFloat(betAmount) > balance && (
-                        <p className="text-red-400 text-sm mt-2 text-center">
+                        <p className="parier-error-message">
                           Solde insuffisant pour ce pari
                         </p>
                       )}
@@ -395,10 +521,24 @@ export default function ParierPage() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="text-center py-12 text-slate-400"
+                      className="parier-empty-state"
                     >
-                      <Trophy className="w-16 h-16 mx-auto mb-4 opacity-30" />
-                      <p>Sélectionnez un match et une équipe pour commencer</p>
+                      <motion.div
+                        animate={{ 
+                          scale: [1, 1.1, 1],
+                          rotate: [0, 5, -5, 0]
+                        }}
+                        transition={{ duration: 3, repeat: Infinity }}
+                        className="parier-empty-icon-wrapper"
+                      >
+                        <Trophy className="parier-empty-icon" />
+                      </motion.div>
+                      <h4 className="parier-empty-title">
+                        Sélectionnez votre match
+                      </h4>
+                      <p className="parier-empty-message">
+                        Choisissez un match et une équipe pour commencer à parier
+                      </p>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -412,7 +552,7 @@ export default function ParierPage() {
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="text-center"
+              className="parier-confirmation-content"
             >
               <motion.div
                 animate={{
@@ -422,19 +562,19 @@ export default function ParierPage() {
                 transition={{ duration: 0.6 }}
                 className="parier-confirmation-icon"
               >
-                <CheckCircle2 className="w-12 h-12 text-white" />
+                <CheckCircle2 className="parier-confirmation-check" />
               </motion.div>
               <DialogHeader>
-                <DialogTitle className="text-3xl mb-2">Pari Confirmé !</DialogTitle>
-                <DialogDescription className="text-lg">
+                <DialogTitle className="parier-confirmation-title">Pari Confirmé !</DialogTitle>
+                <DialogDescription className="parier-confirmation-description">
                   Votre pari a été placé avec succès.
                   <br />
                   Bonne chance !
                 </DialogDescription>
               </DialogHeader>
-              <div className="mt-6 p-4 bg-copper/10 rounded-lg">
-                <p className="text-sm text-slate-300 mb-1">Gain potentiel</p>
-                <p className="text-3xl font-bold text-copper">{potentialWin}€</p>
+              <div className="parier-confirmation-win">
+                <p className="parier-confirmation-win-label">Gain potentiel</p>
+                <p className="parier-confirmation-win-amount">{potentialWin}€</p>
               </div>
             </motion.div>
           </DialogContent>

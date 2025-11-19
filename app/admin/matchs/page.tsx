@@ -345,12 +345,99 @@ export default function AdminMatchsPage() {
       });
 
       if (response.ok) {
-        loadMatches(); // Recharger la liste des matchs
+        toast({
+          title: 'Succès',
+          description: 'Match supprimé avec succès'
+        });
+        loadMatches();
       } else {
-        console.error('Erreur lors de la suppression du match');
+        toast({
+          title: 'Erreur',
+          description: 'Erreur lors de la suppression du match',
+          variant: 'destructive'
+        });
       }
     } catch (error) {
       console.error('Erreur lors de la suppression du match:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Erreur lors de la suppression du match',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleFinalizeMatch = async (matchId: number, winnerTeamId: number) => {
+    if (!confirm('Êtes-vous sûr de vouloir finaliser ce match ? Les gains seront distribués automatiquement.')) return;
+
+    try {
+      const response = await fetch('/api/admin/matches/finalize', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ matchId, winnerTeamId }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        toast({
+          title: 'Match finalisé !',
+          description: `${data.winnersCount} gagnants - ${data.totalPaid.toFixed(2)}€ distribués`
+        });
+        loadMatches();
+      } else {
+        const error = await response.json();
+        toast({
+          title: 'Erreur',
+          description: error.error || 'Erreur lors de la finalisation',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      console.error('Erreur lors de la finalisation:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Erreur lors de la finalisation du match',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleUpdateStatuses = async () => {
+    try {
+      const response = await fetch('/api/admin/matches/update-status', {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        let message = `✅ ${data.scheduledToLive || 0} match(s) passé(s) en live`;
+        
+        if (data.liveToFinished > 0) {
+          message += `\n⚠️ ${data.liveToFinished} match(s) terminé(s) automatiquement (30min)`;
+          message += `\n💰 ${data.cancelledBets} paris annulés et remboursés`;
+        }
+        
+        toast({
+          title: 'Succès',
+          description: message
+        });
+        loadMatches();
+      } else {
+        toast({
+          title: 'Erreur',
+          description: 'Erreur lors de la mise à jour des statuts',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Erreur lors de la mise à jour des statuts',
+        variant: 'destructive'
+      });
     }
   };
 
@@ -465,7 +552,7 @@ export default function AdminMatchsPage() {
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1rem' }}>
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1rem', flexWrap: 'wrap' }}>
             <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
               <DialogTrigger asChild>
                 <Button
@@ -477,6 +564,16 @@ export default function AdminMatchsPage() {
                 </Button>
               </DialogTrigger>
             </Dialog>
+            
+            <Button
+              size="lg"
+              variant="outline"
+              className="bg-blue-600 hover:bg-blue-700 text-white border-blue-500"
+              onClick={handleUpdateStatuses}
+            >
+              <Clock className="mr-2 w-5 h-5" />
+              Mettre à jour les Statuts
+            </Button>
             
             <Button
               size="lg"
@@ -896,6 +993,18 @@ export default function AdminMatchsPage() {
                       <div className="admin-match-odds">
                         {match.team1.odds}
                       </div>
+                      {match.status === 'live' && (
+                        <Button
+                          size="sm"
+                          className="bg-green-600 hover:bg-green-700 text-white text-xs mt-2"
+                          onClick={() => {
+                            const team1Id = teams.find((t: any) => t.name === match.team1.name)?.id;
+                            if (team1Id) handleFinalizeMatch(match.id, team1Id);
+                          }}
+                        >
+                          🏆 Gagnant
+                        </Button>
+                      )}
                     </div>
 
                     <div className="admin-match-vs">VS</div>
@@ -910,6 +1019,18 @@ export default function AdminMatchsPage() {
                       <div className="admin-match-odds">
                         {match.team2.odds}
                       </div>
+                      {match.status === 'live' && (
+                        <Button
+                          size="sm"
+                          className="bg-green-600 hover:bg-green-700 text-white text-xs mt-2"
+                          onClick={() => {
+                            const team2Id = teams.find((t: any) => t.name === match.team2.name)?.id;
+                            if (team2Id) handleFinalizeMatch(match.id, team2Id);
+                          }}
+                        >
+                          🏆 Gagnant
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </Card>

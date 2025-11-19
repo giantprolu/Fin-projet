@@ -4,6 +4,7 @@ import { Inter } from 'next/font/google';
 import { ClerkProvider } from '@clerk/nextjs';
 import Navigation from '@/components/Navigation';
 import FloatingElements from '@/components/FloatingElements';
+import MatchStatusUpdater from '@/components/MatchStatusUpdater';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -23,6 +24,7 @@ export default function RootLayout({
         <body className={`${inter.className} bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 min-h-screen`}>
           <FloatingElements />
           <Navigation />
+          <MatchStatusUpdater />
           <main className="pt-16 relative z-10">
             {children}
           </main>
